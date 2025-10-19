@@ -99,6 +99,8 @@ uv run python truenas-cli.py app stop plex
 - `pool create` - Create a new pool
 - `pool delete` - Delete a pool
 - `pool import` - Import existing pool
+- `pool scrub list|run|update|delete` - Manage scrub schedules and runs
+- `pool resilver status|update` - Manage resilver priority windows
 
 ### Datasets
 - `dataset list` - List datasets

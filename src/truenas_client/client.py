@@ -1029,6 +1029,42 @@ class TrueNASClient:
             return pools[0]
         raise TrueNASNotFoundError(f"Pool '{pool_name}' not found")
 
+    async def get_pool_scrubs(self) -> List[Dict[str, Any]]:
+        """Get configured pool scrub tasks."""
+        return await self.query("pool.scrub")
+
+    async def run_pool_scrub(
+        self,
+        pool_name: str,
+        *,
+        threshold: Optional[int] = None,
+    ) -> Any:
+        """Trigger a scrub run for the given pool."""
+        params: List[Any] = [pool_name]
+        if threshold is not None:
+            params.append(threshold)
+        return await self.call("pool.scrub.run", params)
+
+    async def update_pool_scrub(
+        self,
+        scrub_id: int,
+        **data: Any,
+    ) -> Dict[str, Any]:
+        """Update scrub schedule configuration."""
+        return await self.call("pool.scrub.update", [scrub_id, data])
+
+    async def delete_pool_scrub(self, scrub_id: int) -> bool:
+        """Delete a scrub schedule."""
+        return await self.call("pool.scrub.delete", [scrub_id])
+
+    async def get_resilver_config(self) -> Dict[str, Any]:
+        """Get resilver priority configuration."""
+        return await self.call("pool.resilver.config", [])
+
+    async def update_resilver_config(self, **data: Any) -> Dict[str, Any]:
+        """Update resilver priority configuration."""
+        return await self.call("pool.resilver.update", [data])
+
     # Dataset operations - extended
     async def get_datasets(
         self, pool_name: Optional[str] = None
