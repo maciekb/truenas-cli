@@ -346,7 +346,7 @@ class PoolCommands(CommandGroup):
             "--naming-schema",
             dest="naming_schema",
             required=True,
-            help="Snapshot naming schema (must include %Y %m %d %H %M)",
+            help="Snapshot naming schema (must include %%Y %%m %%d %%H %%M)",
         )
         snap_create_parser.add_argument(
             "--lifetime-value",
