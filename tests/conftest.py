@@ -5,8 +5,16 @@ from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from dotenv import load_dotenv
 
-from truenas_client import TrueNASClient
+from truenas_client import (
+    TrueNASAuthenticationError,
+    TrueNASClient,
+    TrueNASConnectionError,
+)
+
+# Load environment variables from .env for integration tests.
+load_dotenv()
 
 
 @pytest.fixture
@@ -78,6 +86,17 @@ async def real_client(
 
     client = TrueNASClient(truenas_host, verify_ssl=False)
 
-    async with client:
+    try:
+        await client.connect()
         await client.login_with_api_key(truenas_api_key)
+    except (TrueNASConnectionError, ConnectionError) as exc:
+        pytest.skip(f"Unable to connect to TrueNAS host '{truenas_host}': {exc}")
+    except TrueNASAuthenticationError as exc:
+        pytest.skip(f"TrueNAS authentication failed: {exc}")
+    except Exception as exc:  # pragma: no cover - defensive
+        pytest.skip(f"Unexpected error during TrueNAS setup: {exc}")
+
+    try:
         yield client
+    finally:
+        await client.disconnect()

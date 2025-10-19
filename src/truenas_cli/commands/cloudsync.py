@@ -5,9 +5,12 @@ from __future__ import annotations
 import argparse
 import json
 
+from typing import Any, Dict
+
 from truenas_client import TrueNASClient
 
 from ..core import run_command
+from ..validation import parse_json_argument
 from .base import CommandGroup
 
 
@@ -267,7 +270,7 @@ class CloudSyncCommands(CommandGroup):
         self.add_required_argument(
             creds_create_parser,
             "attributes",
-            "Provider attributes as JSON string",
+            "Provider attributes as JSON string or @path to file",
         )
 
         # Delete credentials
@@ -299,17 +302,18 @@ class CloudSyncCommands(CommandGroup):
         self.add_required_argument(
             creds_verify_parser,
             "attributes",
-            "Provider attributes as JSON string",
+            "Provider attributes as JSON string or @path to file",
         )
 
 
 async def _cmd_cloudsync_creds_root(args: argparse.Namespace) -> None:
-    """Handle ``cloudsync creds`` root command by showing help."""
+    """Handle ``cloudsync creds`` root command by showing contextual help."""
+
     parser = getattr(args, "_creds_parser", None)
     if isinstance(parser, argparse.ArgumentParser):
         parser.print_help()
-        return
-    print("Specify a credentials subcommand. Use --help for available options.")
+    else:
+        print("Specify a credentials subcommand. Use --help for available options.")
 
 
 async def _cmd_cloudsync_list(args: argparse.Namespace) -> None:
@@ -661,11 +665,7 @@ async def _cmd_cloudsync_creds_create(args: argparse.Namespace) -> None:
     """Handle ``cloudsync creds create`` command."""
 
     async def handler(client: TrueNASClient) -> None:
-        # Parse attributes JSON
-        try:
-            attributes = json.loads(args.attributes)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for attributes: {e}") from e
+        attributes = parse_json_argument(args.attributes, name="attributes")
 
         print(f"Creating cloud sync credentials: {args.name}...")
 
@@ -694,8 +694,21 @@ async def _cmd_cloudsync_creds_delete(args: argparse.Namespace) -> None:
         result = await client.delete_cloudsync_credential(args.cred_id)
 
         if args.json:
-            print(json.dumps({"success": result}, indent=2))
+            payload: Dict[str, Any] = {"success": bool(result)}
+            if not result:
+                payload["error"] = (
+                    "TrueNAS did not confirm removal. Verify the credential is not in use."
+                )
+            print(json.dumps(payload, indent=2))
+            if not result:
+                raise ValueError(payload["error"])
             return
+
+        if not result:
+            raise ValueError(
+                "Deletion failed: TrueNAS did not confirm removal. "
+                "Verify the credential is not in use."
+            )
 
         print(f"✓ Cloud sync credentials ID {args.cred_id} deleted successfully")
 
@@ -706,11 +719,7 @@ async def _cmd_cloudsync_creds_verify(args: argparse.Namespace) -> None:
     """Handle ``cloudsync creds verify`` command."""
 
     async def handler(client: TrueNASClient) -> None:
-        # Parse attributes JSON
-        try:
-            attributes = json.loads(args.attributes)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for attributes: {e}") from e
+        attributes = parse_json_argument(args.attributes, name="attributes")
 
         print(f"Verifying cloud sync credentials for {args.provider}...")
 

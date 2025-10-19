@@ -21,6 +21,8 @@ Validation Categories:
 from __future__ import annotations
 
 import re
+import json
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from truenas_client import TrueNASValidationError
@@ -314,3 +316,48 @@ def validate_positive_int(
         )
 
     return value
+
+
+def parse_json_argument(value: str, *, name: str, allow_file: bool = True) -> Any:
+    """Parse JSON argument and support @file syntax for convenience.
+
+    Args:
+        value: Raw CLI argument supplied by the user.
+        name: Logical argument name used in error messages (e.g., ``\"attributes\"``).
+        allow_file: When True, ``@<path>`` loads JSON from the specified file.
+
+    Returns:
+        The parsed JSON object (dict/list/primitive).
+
+    Raises:
+        TrueNASValidationError: If the argument is empty, the file cannot be read,
+            or the content is not valid JSON.
+    """
+    if value is None or not str(value).strip():
+        raise TrueNASValidationError(f"{name} cannot be empty")
+
+    raw = value.strip()
+    source_desc = "provided string"
+
+    if allow_file and raw.startswith("@"):
+        file_path = Path(raw[1:])
+        if not file_path.exists():
+            raise TrueNASValidationError(
+                f"{name}: File '{file_path}' not found. "
+                "Provide JSON directly or use @<path>."
+            )
+        try:
+            raw = file_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise TrueNASValidationError(
+                f"{name}: Unable to read file '{file_path}': {exc}"
+            ) from exc
+        source_desc = f"file '{file_path}'"
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise TrueNASValidationError(
+            f"{name}: Invalid JSON in {source_desc}: {exc.msg} "
+            f"(line {exc.lineno}, column {exc.colno})"
+        ) from exc

@@ -49,10 +49,10 @@ client: Optional[TrueNASClient] = None
 
 
 def _require_api_key() -> str:
-    """Return configured API key or raise informative error."""
+    """Get configured API key or raise a helpful error."""
     if TRUENAS_API_KEY is None:
         raise RuntimeError(
-            "TRUENAS_API_KEY must be set to exercise connection examples."
+            "TRUENAS_API_KEY must be set to run connection-dependent examples."
         )
     return TRUENAS_API_KEY
 

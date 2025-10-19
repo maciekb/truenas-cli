@@ -347,7 +347,9 @@ async def _cmd_dataset_list(args):
         for ds in datasets:
             ds_name = ds.get("name")
             mountpoint_value = ds.get("mountpoint")
-            ds_mountpoint = mountpoint_value if isinstance(mountpoint_value, str) else ""
+            ds_mountpoint: str = (
+                mountpoint_value if isinstance(mountpoint_value, str) else ""
+            )
 
             print(f"\nDataset: {ds_name}")
             print(f"  Type: {ds.get('type')}")
@@ -454,6 +456,7 @@ async def _cmd_dataset_delete(args):
             if isinstance(name, str):
                 dataset_map_all[name] = ds
 
+        dataset_map: Dict[str, Dict[str, Any]]
         if args.pool:
             dataset_map: Dict[str, Dict[str, Any]] = {
                 name: info
@@ -483,11 +486,9 @@ async def _cmd_dataset_delete(args):
         empty_dataset_map: Dict[str, Dict[str, Any]] = {}
 
         if args.empty:
-            empty_dataset_map = {
-                name: ds
-                for name, ds in dataset_map.items()
-                if _is_dataset_empty(ds, smb_shares, nfs_shares, snapshots_by_dataset)
-            }
+            for name, ds in dataset_map.items():
+                if _is_dataset_empty(ds, smb_shares, nfs_shares, snapshots_by_dataset):
+                    empty_dataset_map[name] = ds
 
             if args.datasets:
                 if args.pool:

@@ -268,7 +268,6 @@ class TrueNASClient:
         self.ws = None
         self._authenticated = False
         self._session_id = None
-        assert ws is not None
         await ws.close()
         logger.info("Disconnected from TrueNAS")
 
