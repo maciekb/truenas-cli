@@ -158,6 +158,33 @@ Or use command-line arguments:
 - `group update <id>` - Update a group
 - `group delete <id>` - Delete a group
 
+### Replication
+- `replication list` - List all replication tasks
+- `replication info <id>` - Get task details
+- `replication create <name> <direction> <transport> <source> <target>` - Create task
+- `replication update <id>` - Update a task
+- `replication delete <id>` - Delete a task
+- `replication run <id>` - Run a task
+- `replication run-once <direction> <transport> <source> <target>` - One-time replication
+- `replication datasets` - List available datasets
+- `replication schemas` - List snapshot naming schemas
+
+### Cloud Sync
+- `cloudsync list` - List all cloud sync tasks
+- `cloudsync info <id>` - Get task details
+- `cloudsync create <path> <credentials> <direction> <transfer_mode> <bucket>` - Create task
+- `cloudsync update <id>` - Update a task
+- `cloudsync delete <id>` - Delete a task
+- `cloudsync sync <id>` - Run a task
+- `cloudsync abort <id>` - Abort running task
+- `cloudsync providers` - List supported cloud providers
+- `cloudsync list-buckets <credentials>` - List buckets
+- `cloudsync creds list` - List credentials
+- `cloudsync creds info <id>` - Get credential details
+- `cloudsync creds create <name> <provider> <attributes>` - Create credentials
+- `cloudsync creds delete <id>` - Delete credentials
+- `cloudsync creds verify <provider> <attributes>` - Verify credentials
+
 ## Advanced Usage
 
 ### JSON Output
@@ -250,13 +277,13 @@ Based on TrueNAS API v25.10.0 documentation:
 - ✅ Service control
 - ✅ Disk information
 - ✅ Alert management
-- ✅ **App/Container management**
-- ✅ **User/Group management (NEW!)**
+- ✅ App/Container management
+- ✅ User/Group management
+- ✅ **Replication (NEW!)**
+- ✅ **Cloud Sync (NEW!)**
 
 **Planned:**
 - 🚧 VM/Virtualization
-- 🚧 Replication
-- 🚧 Cloud sync
 - 🚧 Network configuration
 - 🚧 Certificate management
 - 🚧 System updates

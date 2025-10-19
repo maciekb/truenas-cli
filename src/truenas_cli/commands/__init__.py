@@ -10,12 +10,14 @@ from __future__ import annotations
 
 from .alerts import AlertsCommands
 from .app import AppCommands
+from .cloudsync import CloudSyncCommands
 from .dataset import DatasetCommands
 from .disk import DiskCommands
 from .general import GeneralCommands
 from .group import GroupCommands
 from .nfs import NFSCommands
 from .pool import PoolCommands
+from .replication import ReplicationCommands
 from .service import ServiceCommands
 from .smb import SMBCommands
 from .snapshot import SnapshotCommands
@@ -36,6 +38,8 @@ COMMAND_GROUPS = [
     AppCommands(),
     UserCommands(),
     GroupCommands(),
+    ReplicationCommands(),
+    CloudSyncCommands(),
 ]
 
 __all__ = ["COMMAND_GROUPS"]

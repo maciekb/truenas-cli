@@ -27,6 +27,8 @@ class TestCommandRegistration:
             "app",
             "user",
             "group",
+            "replication",
+            "cloudsync",
         ]
 
         registered_names = [group.name for group in COMMAND_GROUPS]
@@ -191,3 +193,27 @@ class TestGroupCommands:
 
         group = GroupCommands()
         assert group.name == "group"
+
+
+@pytest.mark.unit
+class TestReplicationCommands:
+    """Test replication command group."""
+
+    def test_replication_commands_exist(self):
+        """Test that replication commands are registered."""
+        from truenas_cli.commands.replication import ReplicationCommands
+
+        replication = ReplicationCommands()
+        assert replication.name == "replication"
+
+
+@pytest.mark.unit
+class TestCloudSyncCommands:
+    """Test cloudsync command group."""
+
+    def test_cloudsync_commands_exist(self):
+        """Test that cloudsync commands are registered."""
+        from truenas_cli.commands.cloudsync import CloudSyncCommands
+
+        cloudsync = CloudSyncCommands()
+        assert cloudsync.name == "cloudsync"
