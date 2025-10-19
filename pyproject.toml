@@ -27,6 +27,9 @@ dependencies = [
     "python-dotenv>=1.0.0",
 ]
 
+[[tool.pyrefly.sub-config]]
+matches = "truenas_cli/commands/base"
+
 [project.optional-dependencies]
 dev = [
     "ruff>=0.1.0",
@@ -37,6 +40,9 @@ dev = [
     "anyio[trio]>=4.0.0",
     "pytest-cov>=4.0.0",
 ]
+
+[tool.pyrefly.sub-config.errors]
+missing-attribute = "ignore"
 
 [tool.ruff]
 # Configure Ruff to use the maximum line length of 88 characters
@@ -52,6 +58,9 @@ exclude = [
     ".eggs",
     "*.egg-info",
 ]
+
+[[tool.pyrefly.sub-config]]
+matches = "truenas_cli/commands/disk"
 
 [tool.ruff.lint]
 # Enable specific rule sets
@@ -69,6 +78,9 @@ ignore = [
     "E501",   # Line too long (handled by black)
 ]
 
+[tool.pyrefly.sub-config.errors]
+bad-argument-type = "ignore"
+
 [tool.black]
 line-length = 88
 target-version = ["py38"]
@@ -85,12 +97,19 @@ extend-exclude = '''
 )/
 '''
 
+[[tool.pyrefly.sub-config]]
+matches = "truenas_cli/commands/dataset"
+
 [tool.isort]
 profile = "black"
 line_length = 88
 skip_glob = [".venv/*", "venv/*"]
 known_first_party = ["truenas_client", "truenas_cli"]
 known_third_party = ["websockets", "dotenv"]
+
+[tool.pyrefly.sub-config.errors]
+bad-argument-type = "ignore"
+bad-assignment = "ignore"
 
 [tool.mypy]
 python_version = "3.9"
@@ -107,10 +126,21 @@ namespace_packages = true
 explicit_package_bases = true
 mypy_path = "src"
 
+[[tool.pyrefly.sub-config]]
+matches = "truenas_cli/cli"
+
 # Per-module options for gradual typing
 [[tool.mypy.overrides]]
 module = "websockets.*"
 ignore_missing_imports = true
+
+[tool.pyrefly]
+search-path = ["src"]
+python-version = "3.9.0"
+ignore-missing-imports = ["websockets.*"]
+
+[tool.pyrefly.sub-config.errors]
+missing-attribute = "ignore"
 
 # Client library - Allow Any returns from async JSON-RPC calls
 [[tool.mypy.overrides]]

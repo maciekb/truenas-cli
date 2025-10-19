@@ -10,6 +10,8 @@ from truenas_client import TrueNASClient
 from ..core import format_size, run_command
 from .base import CommandGroup
 
+DEFAULT_SHUTDOWN_REASON = "TrueNAS CLI shutdown request"
+
 
 class SystemCommands(CommandGroup):
     """Commands backed by the ``system`` API namespace."""
@@ -61,6 +63,12 @@ class SystemCommands(CommandGroup):
             type=int,
             default=10,
             help="Delay in seconds before shutdown (default: 10)",
+        )
+        shutdown_parser.add_argument(
+            "--reason",
+            type=str,
+            default=DEFAULT_SHUTDOWN_REASON,
+            help="Reason message sent with the shutdown request",
         )
         shutdown_parser.set_defaults(func=_cmd_system_shutdown)
 
@@ -143,8 +151,14 @@ async def _cmd_system_shutdown(args):
 
     async def handler(client: TrueNASClient):
         delay = args.delay
+        reason = args.reason.strip()
+        if not reason:
+            raise ValueError("Shutdown reason must be a non-empty string.")
         print(f"Sending shutdown command with {delay}s delay...")
-        result = await client.call("system.shutdown", [{"delay": delay}])
+        result = await client.call(
+            "system.shutdown",
+            [reason, {"delay": delay}],
+        )
 
         if args.json:
             print(json.dumps(result, indent=2))
