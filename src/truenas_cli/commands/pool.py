@@ -322,14 +322,18 @@ class PoolCommands(CommandGroup):
             parents=parents,
         )
         snap_list_parser.set_defaults(func=_cmd_pool_snapshottask_list)
-        snap_list_parser.add_argument(
-            "--dataset",
-            help="Filter by dataset name",
+        self.add_optional_argument(
+            snap_list_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Filter by dataset name",
         )
-        snap_list_parser.add_argument(
-            "--full",
+        self.add_optional_argument(
+            snap_list_parser,
+            ["-F", "--full"],
+            "full",
+            "Show full task payload",
             action="store_true",
-            help="Show full task payload",
         )
 
         snap_create_parser = snap_sub.add_parser(
