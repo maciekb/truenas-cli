@@ -1779,6 +1779,627 @@ class TrueNASClient:
         """
         return await self.call("group.delete", [group_id])
 
+    # Replication operations
+    async def get_replications(self) -> List[Dict[str, Any]]:
+        """
+        Get all replication tasks (replication.query)
+
+        Returns:
+            List of replication task dictionaries
+
+        Example:
+            >>> tasks = await client.get_replications()
+            >>> for task in tasks:
+            ...     print(f"{task['name']}: {task['state']['state']}")
+        """
+        return await self.query("replication")
+
+    async def get_replication(self, task_id: int) -> Dict[str, Any]:
+        """
+        Get replication task information by ID (replication.get_instance)
+
+        Args:
+            task_id: Replication task ID
+
+        Returns:
+            Replication task information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If task doesn't exist
+        """
+        try:
+            result = await self.call("replication.get_instance", [task_id])
+            if result is None:
+                raise TrueNASNotFoundError(
+                    f"Replication task with ID {task_id} not found"
+                )
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(
+                    f"Replication task with ID {task_id} not found"
+                ) from e
+            raise
+
+    async def create_replication(
+        self,
+        name: str,
+        direction: str,
+        transport: str,
+        source_datasets: List[str],
+        target_dataset: str,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Create a new replication task (replication.create)
+
+        Args:
+            name: Name for the replication task
+            direction: Replication direction ("PUSH" or "PULL")
+            transport: Transport method ("SSH", "LOCAL", or "LEGACY")
+            source_datasets: List of source dataset paths
+            target_dataset: Target dataset path
+            **kwargs: Additional replication parameters:
+                - ssh_credentials: SSH credentials ID (required for SSH transport)
+                - recursive: Recursively replicate child datasets (bool)
+                - exclude: Dataset paths to exclude (list)
+                - properties: Replicate dataset properties (bool)
+                - properties_exclude: Properties to exclude (list)
+                - properties_override: Override specific properties (dict)
+                - encryption: Enable encryption (bool)
+                - periodic_snapshot_tasks: Associated snapshot task IDs (list)
+                - naming_schema: Snapshot naming schemas (list)
+                - also_include_naming_schema: Additional schemas (list)
+                - name_regex: Regular expression for snapshot names
+                - auto: Automatically replicate on schedule (bool)
+                - schedule: Cron schedule configuration (dict)
+                - retention_policy: Snapshot retention policy
+                - lifetime_value: Retention lifetime value (int)
+                - lifetime_unit: Retention lifetime unit
+                - enabled: Enable the replication task (bool)
+                - readonly: Set readonly property on target
+                - allow_from_scratch: Allow full replication from scratch (bool)
+                - hold_pending_snapshots: Hold pending snapshots (bool)
+                - logging_level: Logging level
+                - speed_limit: Speed limit in KB/s (int)
+                - compression: Compression algorithm
+                - large_block: Enable large blocks (bool)
+                - embed: Enable embedded data (bool)
+                - compressed: Enable compressed send (bool)
+
+        Returns:
+            Created replication task information
+
+        Example:
+            >>> task = await client.create_replication(
+            ...     name="backup-to-remote",
+            ...     direction="PUSH",
+            ...     transport="SSH",
+            ...     source_datasets=["tank/data"],
+            ...     target_dataset="backup/data",
+            ...     ssh_credentials=1,
+            ...     recursive=True
+            ... )
+        """
+        params = {
+            "name": name,
+            "direction": direction,
+            "transport": transport,
+            "source_datasets": source_datasets,
+            "target_dataset": target_dataset,
+        }
+
+        params.update(kwargs)
+        return await self.call("replication.create", [params])
+
+    async def update_replication(self, task_id: int, **kwargs) -> Dict[str, Any]:
+        """
+        Update replication task (replication.update)
+
+        Args:
+            task_id: Replication task ID
+            **kwargs: Fields to update (same as create_replication)
+
+        Returns:
+            Updated replication task information
+        """
+        return await self.call("replication.update", [task_id, kwargs])
+
+    async def delete_replication(self, task_id: int) -> bool:
+        """
+        Delete a replication task (replication.delete)
+
+        Args:
+            task_id: Replication task ID
+
+        Returns:
+            True if deleted successfully
+
+        Raises:
+            TrueNASAPIError: If task is running or in use
+        """
+        return await self.call("replication.delete", [task_id])
+
+    async def run_replication(self, task_id: int) -> None:
+        """
+        Run a replication task immediately (replication.run)
+
+        This starts a background job. Monitor job status via job API.
+
+        Args:
+            task_id: Replication task ID
+
+        Example:
+            >>> await client.run_replication(1)
+        """
+        await self.call("replication.run", [task_id])
+
+    async def run_replication_onetime(
+        self,
+        direction: str,
+        transport: str,
+        source_datasets: List[str],
+        target_dataset: str,
+        **kwargs,
+    ) -> None:
+        """
+        Run a one-time replication (not saved as a task) (replication.run_onetime)
+
+        This starts a background job for a one-time replication without
+        creating a saved replication task.
+
+        Args:
+            direction: Replication direction ("PUSH" or "PULL")
+            transport: Transport method ("SSH" or "LOCAL")
+            source_datasets: List of source dataset paths
+            target_dataset: Target dataset path
+            **kwargs: Additional parameters (same as create_replication,
+                     except name, auto, schedule not applicable)
+
+        Example:
+            >>> await client.run_replication_onetime(
+            ...     direction="PUSH",
+            ...     transport="LOCAL",
+            ...     source_datasets=["tank/data"],
+            ...     target_dataset="backup/data"
+            ... )
+        """
+        params = {
+            "direction": direction,
+            "transport": transport,
+            "source_datasets": source_datasets,
+            "target_dataset": target_dataset,
+        }
+
+        params.update(kwargs)
+        await self.call("replication.run_onetime", [params])
+
+    async def list_replication_datasets(
+        self, transport: str = "LOCAL", ssh_credentials: Optional[int] = None
+    ) -> List[str]:
+        """
+        List available datasets for replication (replication.list_datasets)
+
+        Args:
+            transport: Transport method ("SSH" or "LOCAL")
+            ssh_credentials: SSH credentials ID (required for SSH transport)
+
+        Returns:
+            List of dataset paths
+
+        Example:
+            >>> datasets = await client.list_replication_datasets("LOCAL")
+            >>> print(datasets)
+            ['tank', 'tank/data', 'tank/media']
+        """
+        params = {"transport": transport}
+        if ssh_credentials is not None:
+            params["ssh_credentials"] = ssh_credentials
+
+        return await self.call("replication.list_datasets", [params])
+
+    async def list_replication_naming_schemas(self) -> List[str]:
+        """
+        List available snapshot naming schemas (replication.list_naming_schemas)
+
+        Returns:
+            List of naming schema patterns
+
+        Example:
+            >>> schemas = await client.list_replication_naming_schemas()
+            >>> print(schemas)
+            ['auto-%Y-%m-%d_%H-%M', 'manual-%Y%m%d']
+        """
+        return await self.call("replication.list_naming_schemas")
+
+    # CloudSync operations
+    async def get_cloudsync_tasks(self) -> List[Dict[str, Any]]:
+        """
+        Get all cloud sync tasks (cloudsync.query)
+
+        Returns:
+            List of cloud sync task dictionaries
+
+        Example:
+            >>> tasks = await client.get_cloudsync_tasks()
+            >>> for task in tasks:
+            ...     print(f"{task['description']}: {task['direction']}")
+        """
+        return await self.query("cloudsync")
+
+    async def get_cloudsync_task(self, task_id: int) -> Dict[str, Any]:
+        """
+        Get cloud sync task information by ID (cloudsync.get_instance)
+
+        Args:
+            task_id: Cloud sync task ID
+
+        Returns:
+            Cloud sync task information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If task doesn't exist
+        """
+        try:
+            result = await self.call("cloudsync.get_instance", [task_id])
+            if result is None:
+                raise TrueNASNotFoundError(
+                    f"CloudSync task with ID {task_id} not found"
+                )
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(
+                    f"CloudSync task with ID {task_id} not found"
+                ) from e
+            raise
+
+    async def create_cloudsync_task(
+        self,
+        path: str,
+        credentials: int,
+        direction: str,
+        transfer_mode: str,
+        attributes: Dict[str, Any],
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Create a new cloud sync task (cloudsync.create)
+
+        Args:
+            path: Local path (must start with /mnt or /dev/zvol)
+            credentials: ID of cloud credential
+            direction: Sync direction ("PUSH" or "PULL")
+            transfer_mode: Transfer mode ("SYNC", "COPY", or "MOVE")
+            attributes: Cloud provider-specific attributes (bucket, folder, etc.)
+            **kwargs: Additional cloud sync parameters:
+                - description: Task name to display in UI
+                - schedule: Cron schedule configuration (dict)
+                - encryption: Enable encryption (bool)
+                - filename_encryption: Encrypt filenames (bool)
+                - encryption_password: Password for encryption
+                - encryption_salt: Salt for encryption
+                - pre_script: Bash script to run before backup
+                - post_script: Bash script to run after successful backup
+                - snapshot: Create temporary snapshot before backup (bool)
+                - include: Paths to include (list)
+                - exclude: Paths to exclude (list)
+                - enabled: Enable/disable task (bool)
+                - bwlimit: Bandwidth limit schedule (list of dicts)
+                - transfers: Max parallel file transfers (int)
+                - create_empty_src_dirs: Create empty directories (bool)
+                - follow_symlinks: Follow symbolic links (bool)
+
+        Returns:
+            Created cloud sync task information
+
+        Example:
+            >>> task = await client.create_cloudsync_task(
+            ...     path="/mnt/tank/data",
+            ...     credentials=1,
+            ...     direction="PUSH",
+            ...     transfer_mode="SYNC",
+            ...     attributes={"bucket": "my-backup", "folder": "data"},
+            ...     description="Daily backup to S3"
+            ... )
+        """
+        params = {
+            "path": path,
+            "credentials": credentials,
+            "direction": direction,
+            "transfer_mode": transfer_mode,
+            "attributes": attributes,
+        }
+
+        params.update(kwargs)
+        return await self.call("cloudsync.create", [params])
+
+    async def update_cloudsync_task(self, task_id: int, **kwargs) -> Dict[str, Any]:
+        """
+        Update cloud sync task (cloudsync.update)
+
+        Args:
+            task_id: Cloud sync task ID
+            **kwargs: Fields to update (same as create_cloudsync_task)
+
+        Returns:
+            Updated cloud sync task information
+        """
+        return await self.call("cloudsync.update", [task_id, kwargs])
+
+    async def delete_cloudsync_task(self, task_id: int) -> bool:
+        """
+        Delete a cloud sync task (cloudsync.delete)
+
+        Args:
+            task_id: Cloud sync task ID
+
+        Returns:
+            True if deleted successfully
+
+        Raises:
+            TrueNASAPIError: If task is running or in use
+        """
+        return await self.call("cloudsync.delete", [task_id])
+
+    async def sync_cloudsync_task(self, task_id: int, dry_run: bool = False) -> None:
+        """
+        Run a cloud sync task (cloudsync.sync)
+
+        This starts a background job.
+
+        Args:
+            task_id: Cloud sync task ID
+            dry_run: Perform dry run without actual changes
+
+        Example:
+            >>> await client.sync_cloudsync_task(1, dry_run=True)
+        """
+        options = {"dry_run": dry_run}
+        await self.call("cloudsync.sync", [task_id, options])
+
+    async def sync_cloudsync_onetime(
+        self,
+        path: str,
+        credentials: int,
+        direction: str,
+        transfer_mode: str,
+        attributes: Dict[str, Any],
+        dry_run: bool = False,
+        **kwargs,
+    ) -> None:
+        """
+        Run one-time cloud sync (not saved as a task) (cloudsync.sync_onetime)
+
+        Args:
+            path: Local path (must start with /mnt or /dev/zvol)
+            credentials: ID of cloud credential
+            direction: Sync direction ("PUSH" or "PULL")
+            transfer_mode: Transfer mode ("SYNC", "COPY", or "MOVE")
+            attributes: Cloud provider-specific attributes
+            dry_run: Perform dry run without actual changes
+            **kwargs: Additional parameters (same as create_cloudsync_task)
+
+        Example:
+            >>> await client.sync_cloudsync_onetime(
+            ...     path="/mnt/tank/data",
+            ...     credentials=1,
+            ...     direction="PUSH",
+            ...     transfer_mode="SYNC",
+            ...     attributes={"bucket": "my-backup"},
+            ...     dry_run=True
+            ... )
+        """
+        params = {
+            "path": path,
+            "credentials": credentials,
+            "direction": direction,
+            "transfer_mode": transfer_mode,
+            "attributes": attributes,
+        }
+
+        params.update(kwargs)
+        options = {"dry_run": dry_run}
+        await self.call("cloudsync.sync_onetime", [params, options])
+
+    async def abort_cloudsync_task(self, task_id: int) -> bool:
+        """
+        Abort a running cloud sync task (cloudsync.abort)
+
+        Args:
+            task_id: Cloud sync task ID
+
+        Returns:
+            True if aborted successfully
+        """
+        return await self.call("cloudsync.abort", [task_id])
+
+    async def list_cloudsync_providers(self) -> List[Dict[str, Any]]:
+        """
+        List supported cloud sync providers (cloudsync.providers)
+
+        Returns:
+            List of provider information dictionaries
+
+        Example:
+            >>> providers = await client.list_cloudsync_providers()
+            >>> for provider in providers:
+            ...     print(f"{provider['title']} ({provider['name']})")
+        """
+        return await self.call("cloudsync.providers")
+
+    async def list_cloudsync_directory(
+        self, credentials: int, attributes: Dict[str, Any], **kwargs
+    ) -> List[Dict[str, Any]]:
+        """
+        List contents of remote directory/bucket (cloudsync.list_directory)
+
+        Args:
+            credentials: ID of cloud credential
+            attributes: Cloud provider attributes (bucket, folder, etc.)
+            **kwargs: Additional parameters:
+                - encryption: Whether files are encrypted (bool)
+                - filename_encryption: Whether filenames are encrypted (bool)
+                - encryption_password: Password for decryption
+                - encryption_salt: Salt for decryption
+                - args: Additional arguments
+
+        Returns:
+            List of file/directory information
+
+        Example:
+            >>> files = await client.list_cloudsync_directory(
+            ...     credentials=1,
+            ...     attributes={"bucket": "my-backup", "folder": "data"}
+            ... )
+        """
+        params = {"credentials": credentials, "attributes": attributes}
+        params.update(kwargs)
+        return await self.call("cloudsync.list_directory", [params])
+
+    async def list_cloudsync_buckets(self, credentials: int) -> List[Dict[str, Any]]:
+        """
+        List all buckets for given credentials (cloudsync.list_buckets)
+
+        Args:
+            credentials: ID of cloud credential
+
+        Returns:
+            List of bucket information
+
+        Example:
+            >>> buckets = await client.list_cloudsync_buckets(1)
+            >>> for bucket in buckets:
+            ...     print(bucket['Name'])
+        """
+        return await self.call("cloudsync.list_buckets", [credentials])
+
+    # CloudSync Credentials operations
+    async def get_cloudsync_credentials(self) -> List[Dict[str, Any]]:
+        """
+        Get all cloud sync credentials (cloudsync.credentials.query)
+
+        Returns:
+            List of cloud sync credential dictionaries
+
+        Example:
+            >>> creds = await client.get_cloudsync_credentials()
+            >>> for cred in creds:
+            ...     print(f"{cred['name']}: {cred['provider']}")
+        """
+        return await self.query("cloudsync.credentials")
+
+    async def get_cloudsync_credential(self, cred_id: int) -> Dict[str, Any]:
+        """
+        Get cloud sync credential by ID (cloudsync.credentials.get_instance)
+
+        Args:
+            cred_id: Credential ID
+
+        Returns:
+            Credential information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If credential doesn't exist
+        """
+        try:
+            result = await self.call("cloudsync.credentials.get_instance", [cred_id])
+            if result is None:
+                raise TrueNASNotFoundError(
+                    f"CloudSync credential with ID {cred_id} not found"
+                )
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(
+                    f"CloudSync credential with ID {cred_id} not found"
+                ) from e
+            raise
+
+    async def create_cloudsync_credential(
+        self, name: str, provider: str, attributes: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Create cloud sync credentials (cloudsync.credentials.create)
+
+        Args:
+            name: Name of the credential
+            provider: Cloud provider name (e.g., "S3", "DROPBOX", "GOOGLE_DRIVE")
+            attributes: Provider-specific authentication attributes
+
+        Returns:
+            Created credential information
+
+        Example:
+            >>> cred = await client.create_cloudsync_credential(
+            ...     name="My S3 Credentials",
+            ...     provider="S3",
+            ...     attributes={
+            ...         "access_key_id": "AKIAIOSFODNN7EXAMPLE",
+            ...         "secret_access_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+            ...     }
+            ... )
+        """
+        params = {"name": name, "provider": provider, "attributes": attributes}
+        return await self.call("cloudsync.credentials.create", [params])
+
+    async def update_cloudsync_credential(
+        self, cred_id: int, **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Update cloud sync credential (cloudsync.credentials.update)
+
+        Args:
+            cred_id: Credential ID
+            **kwargs: Fields to update (name, provider, attributes)
+
+        Returns:
+            Updated credential information
+        """
+        return await self.call("cloudsync.credentials.update", [cred_id, kwargs])
+
+    async def delete_cloudsync_credential(self, cred_id: int) -> bool:
+        """
+        Delete cloud sync credential (cloudsync.credentials.delete)
+
+        Args:
+            cred_id: Credential ID
+
+        Returns:
+            True if deleted successfully
+
+        Raises:
+            TrueNASAPIError: If credential is in use
+        """
+        return await self.call("cloudsync.credentials.delete", [cred_id])
+
+    async def verify_cloudsync_credential(
+        self, provider: str, attributes: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Verify cloud sync credentials (cloudsync.credentials.verify)
+
+        Args:
+            provider: Cloud provider name
+            attributes: Provider-specific authentication attributes
+
+        Returns:
+            Verification result
+
+        Example:
+            >>> result = await client.verify_cloudsync_credential(
+            ...     provider="S3",
+            ...     attributes={"access_key_id": "...", "secret_access_key": "..."}
+            ... )
+            >>> if result['valid']:
+            ...     print("Credentials are valid")
+        """
+        params = {"provider": provider, "attributes": attributes}
+        return await self.call("cloudsync.credentials.verify", [params])
+
     # SMB Delete extended
     async def delete_smb_share_with_dataset(
         self,
