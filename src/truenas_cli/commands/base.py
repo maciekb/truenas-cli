@@ -241,7 +241,14 @@ class CommandGroup(ABC):
             help_text: Help text
             **kwargs: Additional arguments for add_argument()
         """
-        if isinstance(flags, (list, tuple, set)):
-            parser.add_argument(*flags, dest=name, help=help_text, **kwargs)
+        if isinstance(flags, str):
+            option_strings = [flags]
         else:
-            parser.add_argument(flags, dest=name, help=help_text, **kwargs)
+            try:
+                option_strings = list(flags)
+            except TypeError as exc:  # pragma: no cover - defensive
+                raise TypeError("flags must be a string or iterable of strings") from exc
+            option_strings = [str(item) for item in option_strings]
+        if not option_strings:
+            raise ValueError("flags iterable must contain at least one flag")
+        parser.add_argument(*option_strings, dest=name, help=help_text, **kwargs)
