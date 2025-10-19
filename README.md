@@ -201,6 +201,10 @@ All commands support `--json` flag for machine-readable output:
 ```bash
 uv run python truenas-cli.py pool list --json | jq '.[] | {name, status}'
 ```
+
+#### Snapshot Schedules
+
+```bash
 uv run python truenas-cli.py pool snapshottask list --dataset tank/data
 uv run python truenas-cli.py pool snapshottask create tank/data \
   --naming-schema "auto_%Y-%m-%d_%H-%M" \
@@ -208,6 +212,14 @@ uv run python truenas-cli.py pool snapshottask create tank/data \
   --schedule "0 * * * *" --recursive
 uv run python truenas-cli.py pool snapshottask run 7
 ```
+
+##### Snapshot Task Quick Reference
+
+| Scenario | Example |
+| --- | --- |
+| Toggle task | `uv run python truenas-cli.py pool snapshottask update 7 --enable` |
+| Adjust retention | `uv run python truenas-cli.py pool snapshottask update 7 --lifetime-value 30 --lifetime-unit DAY` |
+| Update schedule window | `uv run python truenas-cli.py pool snapshottask update 7 --schedule "0 */6 * * *" --begin 01:00 --end 05:00` |
 
 #### Maintenance Windows
 
