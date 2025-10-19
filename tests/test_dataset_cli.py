@@ -1,13 +1,18 @@
 """Tests for dataset CLI commands."""
 
 import argparse
+from collections.abc import Awaitable, Callable
 from unittest.mock import AsyncMock
 
 import pytest
 
+from truenas_client import TrueNASClient
+
 
 @pytest.mark.anyio
-async def test_dataset_rename_calls_pool_rename(monkeypatch):
+async def test_dataset_rename_calls_pool_rename(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure dataset rename uses pool.dataset.rename."""
     from truenas_cli.commands import dataset as dataset_module
 
@@ -20,7 +25,11 @@ async def test_dataset_rename_calls_pool_rename(monkeypatch):
     )
     client.call = AsyncMock(return_value=True)
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(dataset_module, "run_command", fake_run_command)

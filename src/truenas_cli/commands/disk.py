@@ -163,7 +163,7 @@ class DiskCommands(CommandGroup):
 
 
 async def _cmd_disk_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         disks = await client.get_disks()
         disk_names: list[str] = []
         for disk in disks:
@@ -218,7 +218,7 @@ async def _cmd_disk_list(args: Namespace) -> None:
 
 
 async def _cmd_disk_health(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         disk = await client.get_disk(args.disk)
         temp_mapping = {}
         try:

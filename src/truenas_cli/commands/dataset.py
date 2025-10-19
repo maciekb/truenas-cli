@@ -4,8 +4,9 @@ import argparse
 import asyncio
 import json
 from argparse import Namespace
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -324,7 +325,7 @@ class DatasetCommands(CommandGroup):
 
 
 async def _cmd_dataset_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         datasets = await client.get_datasets(args.pool if args.pool else None)
 
         (
@@ -430,7 +431,7 @@ async def _cmd_dataset_list(args: Namespace) -> None:
 
 
 async def _cmd_dataset_create(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         dataset_name = f"{args.pool}/{args.dataset}"
 
         if await client.dataset_exists(dataset_name):
@@ -458,7 +459,7 @@ async def _cmd_dataset_create(args: Namespace) -> None:
 
 
 async def _cmd_dataset_delete(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         all_datasets = await client.get_datasets()
         dataset_map_all: dict[str, dict[str, Any]] = {}
         for ds in all_datasets:
@@ -617,13 +618,11 @@ async def _cmd_dataset_delete(args: Namespace) -> None:
             final_targets = list(targets)
             if final_targets and not args.force:
                 try:
-                    response = (
-                        input(
-                            f"Delete {len(final_targets)} dataset(s): {', '.join(final_targets)}? (yes/no): "
-                        )
-                        .strip()
-                        .lower()
+                    prompt = (
+                        f"Delete {len(final_targets)} dataset(s): "
+                        f"{', '.join(final_targets)}? (yes/no): "
                     )
+                    response = input(prompt).strip().lower()
                 except KeyboardInterrupt:
                     print("\nCancelled by user.")
                     raise SystemExit(1)
@@ -684,7 +683,7 @@ async def _cmd_dataset_delete(args: Namespace) -> None:
 async def _cmd_dataset_rename(args: Namespace) -> None:
     """Handle ``dataset rename`` using ``pool.dataset.rename``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         dataset_name = args.dataset
         new_name = args.new_name
 

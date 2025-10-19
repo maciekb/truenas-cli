@@ -61,7 +61,8 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable
+from typing import Any, Callable
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
@@ -255,12 +256,15 @@ async def run_command(
     except TrueNASConnectionError as exc:
         logger.error("Connection error: %s", exc)
         print(
-            f"Connection Error: Could not connect to TrueNAS at {client.host}:{client.port}\n"
-            f"Details: {exc}\n\n"
-            f"Troubleshooting:\n"
-            f"  - Verify TRUENAS_HOST is correct\n"
-            f"  - Check if TrueNAS is running and accessible\n"
-            f"  - Try using --insecure flag if using self-signed certificates",
+            (
+                "Connection Error: Could not connect to TrueNAS at "
+                f"{client.host}:{client.port}\n"
+            )
+            + f"Details: {exc}\n\n"
+            + "Troubleshooting:\n"
+            + "  - Verify TRUENAS_HOST is correct\n"
+            + "  - Check if TrueNAS is running and accessible\n"
+            + "  - Try using --insecure flag if using self-signed certificates",
             file=sys.stderr,
         )
         raise SystemExit(1) from exc

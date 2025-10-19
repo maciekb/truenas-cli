@@ -70,6 +70,7 @@ from __future__ import annotations
 
 import argparse
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Any, Callable
 
 
@@ -227,7 +228,7 @@ class CommandGroup(ABC):
     @staticmethod
     def add_optional_argument(
         parser: argparse.ArgumentParser,
-        flags,
+        flags: str | Sequence[str],
         name: str,
         help_text: str,
         **kwargs: Any,
@@ -236,7 +237,8 @@ class CommandGroup(ABC):
 
         Args:
             parser: Argument parser
-            flags: Flag string or iterable of flag strings (e.g., '-p' or ['-p', '--pool'])
+            flags: Flag string or iterable of flag strings (e.g., '-p' or
+                ['-p', '--pool'])
             name: Destination variable name
             help_text: Help text
             **kwargs: Additional arguments for add_argument()

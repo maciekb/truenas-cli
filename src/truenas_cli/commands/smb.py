@@ -113,7 +113,7 @@ class SMBCommands(CommandGroup):
 
 
 async def _cmd_smb_list_presets(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         presets = await client.get_smb_presets()
 
         if args.json:
@@ -131,7 +131,7 @@ async def _cmd_smb_list_presets(args: Namespace) -> None:
 
 
 async def _cmd_smb_list_shares(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         shares = await client.get_smb_shares()
 
         if args.json:
@@ -175,7 +175,7 @@ async def _cmd_smb_list_shares(args: Namespace) -> None:
 
 
 async def _cmd_smb_create(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         full_dataset_name = f"{args.pool}/{args.dataset}"
         dataset_mount_path = f"/mnt/{full_dataset_name}"
 
@@ -243,7 +243,7 @@ async def _cmd_smb_create(args: Namespace) -> None:
 
 
 async def _cmd_smb_delete(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         share_ids = list(args.ids)
 
         if not args.force:

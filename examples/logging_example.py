@@ -26,12 +26,11 @@ import asyncio
 import logging
 import os
 import tempfile
-from pathlib import Path
 
 from dotenv import load_dotenv
 
-from truenas_client import TrueNASClient
 from truenas_cli.logging_config import configure_logging
+from truenas_client import TrueNASClient
 
 load_dotenv()
 
@@ -55,24 +54,24 @@ async def demonstrate_logging_levels():
         configure_logging(verbose=0, quiet=True)
         try:
             await client.login_with_api_key(TRUENAS_API_KEY)
-            info = await client.system_info()
-            print(f"   ✓ Operation completed (no verbose output)")
+            await client.system_info()
+            print("   ✓ Operation completed (no verbose output)")
         except Exception as e:
             print(f"   ✗ Error: {e}")
 
         print("\n2. WARNING level (default):")
         configure_logging(verbose=0, quiet=False)
         try:
-            info = await client.system_info()
-            print(f"   ✓ Operation completed")
+            await client.system_info()
+            print("   ✓ Operation completed")
         except Exception as e:
             print(f"   ✗ Error: {e}")
 
         print("\n3. INFO level (major operations):")
         configure_logging(verbose=1)
         try:
-            info = await client.system_info()
-            print(f"   ✓ Operation completed")
+            await client.system_info()
+            print("   ✓ Operation completed")
         except Exception as e:
             print(f"   ✗ Error: {e}")
 
@@ -80,8 +79,8 @@ async def demonstrate_logging_levels():
         configure_logging(verbose=2)
         print("   (Watch for detailed WebSocket and JSON-RPC logs)")
         try:
-            info = await client.system_info()
-            print(f"   ✓ Operation completed with verbose logging")
+            await client.system_info()
+            print("   ✓ Operation completed with verbose logging")
         except Exception as e:
             print(f"   ✗ Error: {e}")
 
@@ -106,13 +105,13 @@ async def demonstrate_file_logging():
             host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(TRUENAS_API_KEY)
-            info = await client.system_info()
+            await client.system_info()
             print(f"✓ Operations logged to: {log_file}")
 
         # Read and display log contents
         print("\nLog file contents (last 20 lines):")
         print("-" * 60)
-        with open(log_file, "r") as f:
+        with open(log_file) as f:
             lines = f.readlines()
             # Show last 20 lines
             for line in lines[-20:]:
@@ -121,7 +120,7 @@ async def demonstrate_file_logging():
 
         # Verify sanitization
         print("\nVerifying sensitive data sanitization:")
-        with open(log_file, "r") as f:
+        with open(log_file) as f:
             content = f.read()
             if TRUENAS_API_KEY in content:
                 print("✗ WARNING: API key found in logs!")
@@ -135,7 +134,7 @@ async def demonstrate_file_logging():
         # Cleanup
         if os.path.exists(log_file):
             os.remove(log_file)
-            print(f"✓ Cleaned up temporary log file")
+            print("✓ Cleaned up temporary log file")
 
 
 async def demonstrate_performance_metrics():
@@ -164,7 +163,7 @@ async def demonstrate_performance_metrics():
         print("Listing pools...")
         pools = await client.get_pools()
 
-        print(f"✓ Operations completed")
+        print("✓ Operations completed")
         print(f"  - Hostname: {info.get('hostname')}")
         print(f"  - Pools: {len(pools)}")
 

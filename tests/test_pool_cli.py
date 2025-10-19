@@ -1,19 +1,28 @@
 """Tests for pool CLI commands that wrap API calls."""
 
 import argparse
+from collections.abc import Awaitable, Callable
 from unittest.mock import AsyncMock, call
 
 import pytest
 
+from truenas_client import TrueNASClient
+
 
 @pytest.mark.anyio
-async def test_pool_create_builds_topology(monkeypatch):
+async def test_pool_create_builds_topology(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure pool create command builds documented topology payload."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -48,13 +57,19 @@ async def test_pool_create_builds_topology(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_create_encryption_requires_passphrase(monkeypatch):
+async def test_pool_create_encryption_requires_passphrase(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure encryption requires passphrase and populates encryption options."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -93,12 +108,18 @@ async def test_pool_create_encryption_requires_passphrase(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_create_encryption_missing_passphrase(monkeypatch):
+async def test_pool_create_encryption_missing_passphrase(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure missing encryption key raises validation error."""
     from truenas_cli.commands import pool as pool_module
 
-    async def fake_run_command(args, handler, require_auth=True):
-        await handler(AsyncMock())
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
+        await handler(AsyncMock(spec=TrueNASClient))
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
 
@@ -116,7 +137,9 @@ async def test_pool_create_encryption_missing_passphrase(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_import_uses_guid(monkeypatch):
+async def test_pool_import_uses_guid(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure pool import passes GUID as required by API."""
     from truenas_cli.commands import pool as pool_module
 
@@ -128,7 +151,11 @@ async def test_pool_import_uses_guid(monkeypatch):
         ]
     )
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -149,7 +176,9 @@ async def test_pool_import_uses_guid(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_import_with_new_name(monkeypatch):
+async def test_pool_import_with_new_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure pool import sends optional name override when provided."""
     from truenas_cli.commands import pool as pool_module
 
@@ -161,7 +190,11 @@ async def test_pool_import_with_new_name(monkeypatch):
         ]
     )
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -182,7 +215,9 @@ async def test_pool_import_with_new_name(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_export_builds_options(monkeypatch):
+async def test_pool_export_builds_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure export command passes pool ID and options object."""
     from truenas_cli.commands import pool as pool_module
 
@@ -190,7 +225,11 @@ async def test_pool_export_builds_options(monkeypatch):
     client.get_pool = AsyncMock(return_value={"id": 7, "name": "tank"})
     client.call = AsyncMock(return_value=True)
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -210,7 +249,9 @@ async def test_pool_export_builds_options(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_export_force_sets_cascade_and_restart(monkeypatch):
+async def test_pool_export_force_sets_cascade_and_restart(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure force flag cascades attachments and restarts services."""
     from truenas_cli.commands import pool as pool_module
 
@@ -218,7 +259,11 @@ async def test_pool_export_force_sets_cascade_and_restart(monkeypatch):
     client.get_pool = AsyncMock(return_value={"id": 9, "name": "tank"})
     client.call = AsyncMock(return_value=True)
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -240,7 +285,9 @@ async def test_pool_export_force_sets_cascade_and_restart(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_pool_delete_uses_destroy(monkeypatch):
+async def test_pool_delete_uses_destroy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure delete command maps to pool.export destroy option."""
     from truenas_cli.commands import pool as pool_module
 
@@ -248,7 +295,11 @@ async def test_pool_delete_uses_destroy(monkeypatch):
     client.get_pool = AsyncMock(return_value={"id": 11, "name": "tank"})
     client.call = AsyncMock(return_value=True)
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)

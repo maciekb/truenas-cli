@@ -34,8 +34,8 @@ def render_system_summary(info: dict[str, Any]) -> str:
             "physical_cores",
         ],
         template=(
-            "System summary: Host {hostname} runs TrueNAS version {version} on {model}. "
-            "CPU cores: {cores} total ({physical_cores} physical)."
+            "System summary: Host {hostname} runs TrueNAS version {version} "
+            "on {model}. CPU cores: {cores} total ({physical_cores} physical)."
         ),
     )
     return template.format(
