@@ -95,13 +95,17 @@ def validate_dataset_name(name: str) -> None:
     components = name.split("/")
 
     if not components[0]:
-        raise TrueNASValidationError(f"Dataset name '{name}' must start with a pool name")
+        raise TrueNASValidationError(
+            f"Dataset name '{name}' must start with a pool name"
+        )
 
     # Validate each component
     for i, component in enumerate(components):
         if not component:
             if i == 0:
-                raise TrueNASValidationError(f"Dataset name '{name}' cannot start with /")
+                raise TrueNASValidationError(
+                    f"Dataset name '{name}' cannot start with /"
+                )
             raise TrueNASValidationError(
                 f"Dataset name '{name}' has empty component (consecutive slashes)"
             )
@@ -138,7 +142,8 @@ def validate_share_name(name: str) -> None:
     invalid_chars = r'["/\\:*?<>|]'
     if re.search(invalid_chars, name):
         raise TrueNASValidationError(
-            f"Share name '{name}' contains invalid characters. " 'Avoid: " / \\ : * ? < > |'
+            f"Share name '{name}' contains invalid characters. "
+            'Avoid: " / \\ : * ? < > |'
         )
 
 
@@ -195,7 +200,9 @@ def validate_response_dict(
     if expected_keys:
         missing = [key for key in expected_keys if key not in response]
         if missing:
-            raise TrueNASValidationError(f"{context}: Missing expected keys: {', '.join(missing)}")
+            raise TrueNASValidationError(
+                f"{context}: Missing expected keys: {', '.join(missing)}"
+            )
 
     return response
 
@@ -217,7 +224,9 @@ def validate_response_list(
         TrueNASValidationError: If response is not a list
     """
     if not isinstance(response, list):
-        raise TrueNASValidationError(f"{context}: Expected list, got {type(response).__name__}")
+        raise TrueNASValidationError(
+            f"{context}: Expected list, got {type(response).__name__}"
+        )
 
     return response
 
@@ -264,7 +273,8 @@ def validate_choice(
     """
     if value not in choices:
         raise TrueNASValidationError(
-            f"Invalid value for {arg_name}: '{value}'. " f"Must be one of: {', '.join(choices)}"
+            f"Invalid value for {arg_name}: '{value}'. "
+            f"Must be one of: {', '.join(choices)}"
         )
 
     return value
@@ -299,6 +309,8 @@ def validate_positive_int(
         )
 
     if value <= 0:
-        raise TrueNASValidationError(f"Argument '{arg_name}' must be positive, got {value}")
+        raise TrueNASValidationError(
+            f"Argument '{arg_name}' must be positive, got {value}"
+        )
 
     return value

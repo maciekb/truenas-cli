@@ -9,15 +9,18 @@ and a ``register`` method that adds argparse subparsers.
 from __future__ import annotations
 
 from .alerts import AlertsCommands
+from .app import AppCommands
 from .dataset import DatasetCommands
 from .disk import DiskCommands
 from .general import GeneralCommands
+from .group import GroupCommands
 from .nfs import NFSCommands
 from .pool import PoolCommands
 from .service import ServiceCommands
 from .smb import SMBCommands
 from .snapshot import SnapshotCommands
 from .system import SystemCommands
+from .user import UserCommands
 
 COMMAND_GROUPS = [
     GeneralCommands(),
@@ -30,6 +33,9 @@ COMMAND_GROUPS = [
     SnapshotCommands(),
     DiskCommands(),
     AlertsCommands(),
+    AppCommands(),
+    UserCommands(),
+    GroupCommands(),
 ]
 
 __all__ = ["COMMAND_GROUPS"]

@@ -55,10 +55,18 @@ class SMBCommands(CommandGroup):
             _cmd_smb_create,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(create_parser, "-p", "pool", "Pool name", required=True)
-        self.add_optional_argument(create_parser, "-d", "dataset", "Dataset name", required=True)
-        self.add_optional_argument(create_parser, "-s", "share", "Share name", required=True)
-        self.add_optional_argument(create_parser, "-c", "comment", "Share comment (optional)")
+        self.add_optional_argument(
+            create_parser, "-p", "pool", "Pool name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-d", "dataset", "Dataset name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-s", "share", "Share name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-c", "comment", "Share comment (optional)"
+        )
         self.add_optional_argument(
             create_parser,
             "--preset",
@@ -163,12 +171,18 @@ async def _cmd_smb_create(args):
                 name=full_dataset_name,
                 dataset_type="FILESYSTEM",
             )
-            print(f"  ✓ Dataset created: " f"{safe_get(dataset, 'name', full_dataset_name)}")
-            print(f"  Mount path: " f"{safe_get(dataset, 'mountpoint', dataset_mount_path)}")
+            print(
+                f"  ✓ Dataset created: {safe_get(dataset, 'name', full_dataset_name)}"
+            )
+            print(
+                f"  Mount path: {safe_get(dataset, 'mountpoint', dataset_mount_path)}"
+            )
         except ValueError:
             dataset = await client.get_dataset(full_dataset_name)
             print("  ℹ Dataset already exists")
-            print(f"  Mount path: " f"{safe_get(dataset, 'mountpoint', dataset_mount_path)}")
+            print(
+                f"  Mount path: {safe_get(dataset, 'mountpoint', dataset_mount_path)}"
+            )
 
         print("\nStep 2: Ensuring SMB service availability (service.*)...")
         try:
@@ -196,7 +210,7 @@ async def _cmd_smb_create(args):
             )
 
         if smb_share:
-            print(f"  ✓ SMB share created: " f"{safe_get(smb_share, 'name', args.share)}")
+            print(f"  ✓ SMB share created: {safe_get(smb_share, 'name', args.share)}")
             if safe_get(smb_share, "id"):
                 print(f"  Share ID: {safe_get(smb_share, 'id')}")
             print(f"  Path: {safe_get(smb_share, 'path', dataset_mount_path)}")

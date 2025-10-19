@@ -49,7 +49,9 @@ from typing import Optional
 # Log format strings
 _SIMPLE_FORMAT = "%(levelname)s: %(message)s"
 _DETAILED_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-_DEBUG_FORMAT = "%(asctime)s - %(name)s:%(funcName)s:%(lineno)d - %(levelname)s - %(message)s"
+_DEBUG_FORMAT = (
+    "%(asctime)s - %(name)s:%(funcName)s:%(lineno)d - %(levelname)s - %(message)s"
+)
 
 
 class SanitizingFilter(logging.Filter):

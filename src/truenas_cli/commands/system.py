@@ -91,7 +91,7 @@ async def _cmd_system_info(args):
         print(f"Hostname: {info.get('hostname')}")
         print(f"Version: {info.get('version')}")
         print(f"Model: {info.get('model')}")
-        print(f"Cores: {info.get('cores')} " f"({info.get('physical_cores')} physical)")
+        print(f"Cores: {info.get('cores')} ({info.get('physical_cores')} physical)")
         physmem = info.get("physmem")
         if physmem is not None:
             print(f"Memory: {format_size(physmem)}")

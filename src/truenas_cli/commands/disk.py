@@ -58,7 +58,9 @@ def _format_temperature(disk: Dict[str, Any], temperature_entry: Optional[Any]) 
     if temp is None:
         return "Unknown"
 
-    base = f"{temp:.1f}°C" if abs(temp - round(temp)) > 1e-2 else f"{int(round(temp))}°C"
+    base = (
+        f"{temp:.1f}°C" if abs(temp - round(temp)) > 1e-2 else f"{int(round(temp))}°C"
+    )
     if critical is not None:
         crit_display = (
             f"{critical:.1f}°C"
@@ -229,7 +231,9 @@ async def _cmd_disk_health(args):
         disk = await client.get_disk(args.disk)
         temp_mapping = {}
         try:
-            temp_mapping = await client.get_disk_temperatures([args.disk], include_thresholds=True)
+            temp_mapping = await client.get_disk_temperatures(
+                [args.disk], include_thresholds=True
+            )
         except Exception:
             temp_mapping = {}
 

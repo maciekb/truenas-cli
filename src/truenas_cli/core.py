@@ -181,14 +181,18 @@ def get_client_from_args(args) -> TrueNASClient:
     host = getattr(args, "host", None) or os.getenv("TRUENAS_HOST")
     port = getattr(args, "port", None) or int(os.getenv("TRUENAS_PORT", "443"))
     no_ssl = (
-        getattr(args, "no_ssl", False) or os.getenv("TRUENAS_NO_SSL", "false").lower() == "true"
+        getattr(args, "no_ssl", False)
+        or os.getenv("TRUENAS_NO_SSL", "false").lower() == "true"
     )
     insecure = (
-        getattr(args, "insecure", False) or os.getenv("TRUENAS_INSECURE", "false").lower() == "true"
+        getattr(args, "insecure", False)
+        or os.getenv("TRUENAS_INSECURE", "false").lower() == "true"
     )
 
     if not host:
-        raise SystemExit("Error: --host is required (or set TRUENAS_HOST in environment)")
+        raise SystemExit(
+            "Error: --host is required (or set TRUENAS_HOST in environment)"
+        )
 
     return TrueNASClient(
         host=host,

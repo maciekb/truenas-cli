@@ -65,12 +65,16 @@ def with_retry(
 
             for attempt in range(1, max_attempts + 1):
                 try:
-                    logger.debug(f"Attempt {attempt}/{max_attempts} for {func.__name__}")
+                    logger.debug(
+                        f"Attempt {attempt}/{max_attempts} for {func.__name__}"
+                    )
                     return await func(*args, **kwargs)
                 except retryable_exceptions as e:
                     last_exception = e
                     if attempt == max_attempts:
-                        logger.error(f"All {max_attempts} attempts failed for {func.__name__}: {e}")
+                        logger.error(
+                            f"All {max_attempts} attempts failed for {func.__name__}: {e}"
+                        )
                         raise
                     logger.warning(
                         f"Attempt {attempt} failed for {func.__name__}: {e}. "
@@ -125,7 +129,9 @@ async def retry_operation(
             return await operation()
         except (TrueNASConnectionError, TrueNASTimeoutError) as e:
             if attempt == max_attempts:
-                logger.error(f"All {max_attempts} attempts failed for {operation_name}: {e}")
+                logger.error(
+                    f"All {max_attempts} attempts failed for {operation_name}: {e}"
+                )
                 raise
             logger.warning(
                 f"Attempt {attempt} failed for {operation_name}: {e}. "
