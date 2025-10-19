@@ -49,8 +49,7 @@ async def demonstrate_logging_levels():
         return
 
     async with TrueNASClient(
-        host=TRUENAS_HOST,
-        verify_ssl=not TRUENAS_INSECURE
+        host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
     ) as client:
         print("1. CRITICAL level (only errors):")
         configure_logging(verbose=0, quiet=True)
@@ -96,7 +95,7 @@ async def demonstrate_file_logging():
         return
 
     # Create temporary log file
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.log') as f:
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".log") as f:
         log_file = f.name
 
     try:
@@ -104,8 +103,7 @@ async def demonstrate_file_logging():
         configure_logging(verbose=2, log_file=log_file)
 
         async with TrueNASClient(
-            host=TRUENAS_HOST,
-            verify_ssl=not TRUENAS_INSECURE
+            host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(TRUENAS_API_KEY)
             info = await client.system_info()
@@ -114,7 +112,7 @@ async def demonstrate_file_logging():
         # Read and display log contents
         print("\nLog file contents (last 20 lines):")
         print("-" * 60)
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             lines = f.readlines()
             # Show last 20 lines
             for line in lines[-20:]:
@@ -123,7 +121,7 @@ async def demonstrate_file_logging():
 
         # Verify sanitization
         print("\nVerifying sensitive data sanitization:")
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             content = f.read()
             if TRUENAS_API_KEY in content:
                 print("✗ WARNING: API key found in logs!")
@@ -155,8 +153,7 @@ async def demonstrate_performance_metrics():
     print("(Watch logs for timing information)\n")
 
     async with TrueNASClient(
-        host=TRUENAS_HOST,
-        verify_ssl=not TRUENAS_INSECURE
+        host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
     ) as client:
         print("Authenticating...")
         await client.login_with_api_key(TRUENAS_API_KEY)
@@ -188,8 +185,7 @@ async def demonstrate_context_propagation():
     print("(Each operation shows method, request ID, and timing)\n")
 
     async with TrueNASClient(
-        host=TRUENAS_HOST,
-        verify_ssl=not TRUENAS_INSECURE
+        host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
     ) as client:
         await client.login_with_api_key(TRUENAS_API_KEY)
 

@@ -36,8 +36,7 @@ TRUENAS_INSECURE = os.getenv("TRUENAS_INSECURE", "false").lower() == "true"
 
 # Enable debug logging to see what's happening
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -50,8 +49,7 @@ async def main():
 
     # Context manager handles connection cleanup automatically
     async with TrueNASClient(
-        host=TRUENAS_HOST,
-        verify_ssl=not TRUENAS_INSECURE
+        host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
     ) as client:
         try:
             # Authenticate with API key

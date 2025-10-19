@@ -39,8 +39,7 @@ TRUENAS_API_KEY = os.getenv("TRUENAS_API_KEY")
 TRUENAS_INSECURE = os.getenv("TRUENAS_INSECURE", "false").lower() == "true"
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -111,7 +110,11 @@ async def demonstrate_validation_errors():
             result = f"✗ {e}"
 
         expected = "✓" if should_pass else "✗"
-        status = "OK" if (should_pass and "✓" in result) or (not should_pass and "✗" in result) else "FAIL"
+        status = (
+            "OK"
+            if (should_pass and "✓" in result) or (not should_pass and "✗" in result)
+            else "FAIL"
+        )
         print(f"  [{status}] '{name}': {result}")
 
 
@@ -122,8 +125,7 @@ async def demonstrate_not_found_errors():
     global client
     try:
         async with TrueNASClient(
-            host=TRUENAS_HOST,
-            verify_ssl=not TRUENAS_INSECURE
+            host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(_require_api_key())
 
@@ -147,8 +149,7 @@ async def demonstrate_api_errors():
     global client
     try:
         async with TrueNASClient(
-            host=TRUENAS_HOST,
-            verify_ssl=not TRUENAS_INSECURE
+            host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(_require_api_key())
 
@@ -172,8 +173,7 @@ async def demonstrate_retry_logic():
     global client
     try:
         async with TrueNASClient(
-            host=TRUENAS_HOST,
-            verify_ssl=not TRUENAS_INSECURE
+            host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(_require_api_key())
 
@@ -197,8 +197,7 @@ async def demonstrate_defensive_checks():
     global client
     try:
         async with TrueNASClient(
-            host=TRUENAS_HOST,
-            verify_ssl=not TRUENAS_INSECURE
+            host=TRUENAS_HOST, verify_ssl=not TRUENAS_INSECURE
         ) as client:
             await client.login_with_api_key(_require_api_key())
 

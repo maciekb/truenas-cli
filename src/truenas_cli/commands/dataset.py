@@ -550,9 +550,7 @@ async def _cmd_dataset_delete(args):
             if not ds:
                 continue
             mountpoint_value = ds.get("mountpoint")
-            mountpoint = (
-                mountpoint_value if isinstance(mountpoint_value, str) else ""
-            )
+            mountpoint = mountpoint_value if isinstance(mountpoint_value, str) else ""
             details = _collect_share_details(
                 mountpoint,
                 smb_shares,

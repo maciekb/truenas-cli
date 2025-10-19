@@ -240,4 +240,3 @@ async def _cmd_disk_health(args):
         print(f"Serial: {disk.get('serial')}")
 
     await run_command(args, handler)
-
