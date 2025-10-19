@@ -289,29 +289,47 @@ async def _cmd_app_available(args: argparse.Namespace) -> None:
 
         print("\n=== Available Applications ===")
 
-        # Count total apps
-        total = 0
-        for train_apps in available.values():
-            if isinstance(train_apps, dict):
-                total += len(train_apps)
+        if isinstance(available, dict):
+            total = sum(len(apps_dict) for apps_dict in available.values() if isinstance(apps_dict, dict))
+            print(f"Total available: {total}")
 
-        print(f"Total available: {total}")
+            for train, apps_dict in sorted(available.items()):
+                if not isinstance(apps_dict, dict):
+                    continue
 
-        for train, apps_dict in sorted(available.items()):
-            if not isinstance(apps_dict, dict):
-                continue
+                print(f"\n--- Train: {train} ({len(apps_dict)} apps) ---")
 
-            print(f"\n--- Train: {train} ({len(apps_dict)} apps) ---")
-
-            for app_name, app_data in sorted(apps_dict.items()):
-                if isinstance(app_data, dict):
-                    latest = app_data.get("latest_version", "N/A")
-                    description = app_data.get("description", "")
-                    if description and len(description) > 60:
+                for app_name, app_data in sorted(apps_dict.items()):
+                    if not isinstance(app_data, dict):
+                        continue
+                    latest = app_data.get("latest_version") or app_data.get("version") or "N/A"
+                    description = app_data.get("description") or ""
+                    if isinstance(description, str) and len(description) > 60:
                         description = description[:57] + "..."
                     print(f"  {app_name} (v{latest})")
                     if description:
                         print(f"    {description}")
+            return
+
+        if isinstance(available, list):
+            print(f"Total available: {len(available)}")
+            for entry in available:
+                if not isinstance(entry, dict):
+                    print(f"\n- {entry}")
+                    continue
+                train = entry.get("train") or entry.get("catalog") or entry.get("branch") or "unknown"
+                name = entry.get("name") or entry.get("app") or entry.get("chart_name") or "unknown"
+                latest = entry.get("latest_version") or entry.get("version") or entry.get("app_version") or "N/A"
+                description = entry.get("description") or entry.get("notes") or ""
+                if isinstance(description, str) and len(description) > 60:
+                    description = description[:57] + "..."
+
+                print(f"\n{name} (train: {train}, v{latest})")
+                if description:
+                    print(f"  {description}")
+            return
+
+        print("No available applications reported.")
 
     await run_command(args, handler)
 
@@ -430,10 +448,25 @@ async def _cmd_app_config(args: argparse.Namespace) -> None:
             return
 
         print("\n=== Applications Configuration ===")
-        if config.get("pool"):
-            print(f"Pool: {config['pool']}")
-        if config.get("dataset"):
-            print(f"Dataset: {config['dataset']}")
+        if not config:
+            print("No application configuration available.")
+            return
+
+        pool = config.get("pool")
+        dataset = config.get("dataset")
+        pool_info = config.get("pool_info")
+
+        if pool:
+            print(f"Pool: {pool}")
+        if dataset:
+            print(f"Dataset: {dataset}")
+        if isinstance(pool_info, dict):
+            status = pool_info.get("status")
+            if status:
+                print(f"Status: {status}")
+            healthy = pool_info.get("healthy")
+            if isinstance(healthy, bool):
+                print(f"Healthy: {'Yes' if healthy else 'No'}")
 
     await run_command(args, handler)
 
