@@ -201,6 +201,22 @@ All commands support `--json` flag for machine-readable output:
 ```bash
 uv run python truenas-cli.py pool list --json | jq '.[] | {name, status}'
 ```
+uv run python truenas-cli.py pool snapshottask list --dataset tank/data
+uv run python truenas-cli.py pool snapshottask create tank/data \
+  --naming-schema "auto_%Y-%m-%d_%H-%M" \
+  --lifetime-value 2 --lifetime-unit WEEK \
+  --schedule "0 * * * *" --recursive
+uv run python truenas-cli.py pool snapshottask run 7
+```
+
+#### Maintenance Windows
+
+Resilver and scrub tasks support optional maintenance windows:
+
+```bash
+uv run python truenas-cli.py pool resilver update --begin 19:00 --end 05:00 --weekday 1,2,3,4,5 --enable
+uv run python truenas-cli.py pool scrub update 3 --threshold 21 --schedule "0 2 * * *" --begin 01:00 --end 04:00
+```
 
 ### Dry Run Mode
 
