@@ -196,7 +196,10 @@ class DatasetCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            list_parser, "-p", "pool", "Pool name (optional filter)"
+            list_parser,
+            ["-p", "--pool"],
+            "pool",
+            "Pool name (optional filter)",
         )
         self.add_optional_argument(
             list_parser,
@@ -222,10 +225,18 @@ class DatasetCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            create_parser, "-p", "pool", "Pool name", required=True
+            create_parser,
+            ["-p", "--pool"],
+            "pool",
+            "Pool name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-d", "dataset", "Dataset name", required=True
+            create_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Dataset name",
+            required=True,
         )
         self.add_optional_argument(
             create_parser,
@@ -258,7 +269,7 @@ class DatasetCommands(CommandGroup):
         )
         self.add_optional_argument(
             delete_parser,
-            "-f",
+            ["-f", "--force"],
             "force",
             "Force delete without confirmation",
             action="store_true",
@@ -278,10 +289,7 @@ class DatasetCommands(CommandGroup):
             action="store_true",
         )
         self.add_optional_argument(
-            delete_parser,
-            "-p",
-            "pool",
-            "Restrict deletion to datasets in this pool",
+            delete_parser, ["-p", "--pool"], "pool", "Restrict deletion to datasets in this pool"
         )
 
         # Rename dataset
@@ -304,7 +312,7 @@ class DatasetCommands(CommandGroup):
         )
         self.add_optional_argument(
             rename_parser,
-            "--recursive",
+            ["-r", "--recursive"],
             "recursive",
             "Recursively rename child datasets (if applicable)",
             action="store_true",

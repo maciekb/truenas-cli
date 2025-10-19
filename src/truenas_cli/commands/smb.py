@@ -56,16 +56,31 @@ class SMBCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            create_parser, "-p", "pool", "Pool name", required=True
+            create_parser,
+            ["-p", "--pool"],
+            "pool",
+            "Pool name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-d", "dataset", "Dataset name", required=True
+            create_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Dataset name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-s", "share", "Share name", required=True
+            create_parser,
+            ["-s", "--share"],
+            "share",
+            "Share name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-c", "comment", "Share comment (optional)"
+            create_parser,
+            ["-c", "--comment"],
+            "comment",
+            "Share comment (optional)",
         )
         self.add_optional_argument(
             create_parser,

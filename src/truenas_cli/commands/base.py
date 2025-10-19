@@ -227,7 +227,7 @@ class CommandGroup(ABC):
     @staticmethod
     def add_optional_argument(
         parser: argparse.ArgumentParser,
-        flag: str,
+        flags,
         name: str,
         help_text: str,
         **kwargs: Any,
@@ -236,9 +236,12 @@ class CommandGroup(ABC):
 
         Args:
             parser: Argument parser
-            flag: Flag (e.g., '-p', '--pool')
+            flags: Flag string or iterable of flag strings (e.g., '-p' or ['-p', '--pool'])
             name: Destination variable name
             help_text: Help text
             **kwargs: Additional arguments for add_argument()
         """
-        parser.add_argument(flag, dest=name, help=help_text, **kwargs)
+        if isinstance(flags, (list, tuple, set)):
+            parser.add_argument(*flags, dest=name, help=help_text, **kwargs)
+        else:
+            parser.add_argument(flags, dest=name, help=help_text, **kwargs)

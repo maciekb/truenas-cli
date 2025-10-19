@@ -45,13 +45,24 @@ class NFSCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            create_parser, "-p", "pool", "Pool name", required=True
+            create_parser,
+            ["-p", "--pool"],
+            "pool",
+            "Pool name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-d", "dataset", "Dataset name", required=True
+            create_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Dataset name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-c", "comment", "Share comment (optional)"
+            create_parser,
+            ["-c", "--comment"],
+            "comment",
+            "Share comment (optional)",
         )
 
         # Delete shares

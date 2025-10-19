@@ -108,7 +108,7 @@ class PoolCommands(CommandGroup):
         )
         self.add_optional_argument(
             import_parser,
-            "--guid",
+            ["-g", "--guid"],
             "guid",
             "Pool GUID (optional)",
         )
@@ -128,7 +128,7 @@ class PoolCommands(CommandGroup):
         )
         self.add_optional_argument(
             export_parser,
-            "--force",
+            ["-f", "--force"],
             "force",
             "Force export even if in use",
             action="store_true",
@@ -149,14 +149,14 @@ class PoolCommands(CommandGroup):
         )
         self.add_optional_argument(
             delete_parser,
-            "--force",
+            ["-f", "--force"],
             "force",
             "Force deletion without confirmation",
             action="store_true",
         )
         self.add_optional_argument(
             delete_parser,
-            "--remove-data",
+            ["-R", "--remove-data"],
             "remove_data",
             "Remove all data from disks",
             action="store_true",
