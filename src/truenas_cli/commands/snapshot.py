@@ -29,7 +29,10 @@ class SnapshotCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            list_parser, "-d", "dataset", "Dataset name (optional filter)"
+            list_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Dataset name (optional filter)",
         )
         self.add_optional_argument(
             list_parser,
@@ -48,10 +51,18 @@ class SnapshotCommands(CommandGroup):
             parent_parser=parent_parser,
         )
         self.add_optional_argument(
-            create_parser, "-d", "dataset", "Dataset name", required=True
+            create_parser,
+            ["-d", "--dataset"],
+            "dataset",
+            "Dataset name",
+            required=True,
         )
         self.add_optional_argument(
-            create_parser, "-n", "name", "Snapshot name", required=True
+            create_parser,
+            ["-n", "--name"],
+            "name",
+            "Snapshot name",
+            required=True,
         )
         self.add_optional_argument(
             create_parser,
@@ -77,7 +88,7 @@ class SnapshotCommands(CommandGroup):
         )
         self.add_optional_argument(
             delete_parser,
-            "-f",
+            ["-f", "--force"],
             "force",
             "Force delete without confirmation",
             action="store_true",
@@ -98,14 +109,14 @@ class SnapshotCommands(CommandGroup):
         )
         self.add_optional_argument(
             rollback_parser,
-            "--force",
+            ["-f", "--force"],
             "force",
             "Force rollback without confirmation",
             action="store_true",
         )
         self.add_optional_argument(
             rollback_parser,
-            "--recursive",
+            ["-r", "--recursive"],
             "recursive",
             "Recursively rollback child datasets",
             action="store_true",

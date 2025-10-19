@@ -227,7 +227,7 @@ class CommandGroup(ABC):
     @staticmethod
     def add_optional_argument(
         parser: argparse.ArgumentParser,
-        flag: str,
+        flags,
         name: str,
         help_text: str,
         **kwargs: Any,
@@ -236,9 +236,19 @@ class CommandGroup(ABC):
 
         Args:
             parser: Argument parser
-            flag: Flag (e.g., '-p', '--pool')
+            flags: Flag string or iterable of flag strings (e.g., '-p' or ['-p', '--pool'])
             name: Destination variable name
             help_text: Help text
             **kwargs: Additional arguments for add_argument()
         """
-        parser.add_argument(flag, dest=name, help=help_text, **kwargs)
+        if isinstance(flags, str):
+            option_strings = [flags]
+        else:
+            try:
+                option_strings = list(flags)
+            except TypeError as exc:  # pragma: no cover - defensive
+                raise TypeError("flags must be a string or iterable of strings") from exc
+            option_strings = [str(item) for item in option_strings]
+        if not option_strings:
+            raise ValueError("flags iterable must contain at least one flag")
+        parser.add_argument(*option_strings, dest=name, help=help_text, **kwargs)
