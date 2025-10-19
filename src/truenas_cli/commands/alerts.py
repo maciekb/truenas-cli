@@ -62,6 +62,7 @@ def _format_alert_duration(alert):
     if dt.tzinfo is not None:
         # Make now timezone-aware if dt is
         from datetime import timezone
+
         now = now.replace(tzinfo=timezone.utc).astimezone()
 
     delta = now - dt
@@ -130,7 +131,13 @@ async def _cmd_alerts_list(args):
             return
 
         # Filter out dismissed alerts by default (unless --full is used)
-        display_alerts = alerts if args.full else [a for a in alerts if not a.get("dismissed", False)] if alerts else []
+        display_alerts = (
+            alerts
+            if args.full
+            else [a for a in alerts if not a.get("dismissed", False)]
+            if alerts
+            else []
+        )
 
         print("\n=== Alerts ===")
         if not display_alerts:
@@ -142,7 +149,9 @@ async def _cmd_alerts_list(args):
             level = alert.get("level", "INFO")
             icon = "⚠️" if level == "WARNING" else "🔴" if level == "CRITICAL" else "ℹ️"
             # Use formatted message if available, otherwise use text or klass
-            message = alert.get("formatted") or alert.get("text", alert.get("klass", "Unknown alert"))
+            message = alert.get("formatted") or alert.get(
+                "text", alert.get("klass", "Unknown alert")
+            )
             created = _format_alert_datetime(alert)
             duration = _format_alert_duration(alert)
 
@@ -155,7 +164,17 @@ async def _cmd_alerts_list(args):
 
             if args.full:
                 # Show all available fields
-                excluded_keys = {"id", "level", "formatted", "text", "klass", "datetime", "created", "timestamp", "date"}
+                excluded_keys = {
+                    "id",
+                    "level",
+                    "formatted",
+                    "text",
+                    "klass",
+                    "datetime",
+                    "created",
+                    "timestamp",
+                    "date",
+                }
                 for key, value in sorted(alert.items()):
                     if key not in excluded_keys:
                         if isinstance(value, bool):

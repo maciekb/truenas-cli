@@ -185,7 +185,16 @@ async def _cmd_pool_list(args):
 
             if args.full:
                 # Show all available fields
-                excluded_keys = {"name", "status", "size", "allocated", "free", "size_str", "allocated_str", "free_str"}
+                excluded_keys = {
+                    "name",
+                    "status",
+                    "size",
+                    "allocated",
+                    "free",
+                    "size_str",
+                    "allocated_str",
+                    "free_str",
+                }
                 for key, value in sorted(pool.items()):
                     if key not in excluded_keys:
                         if isinstance(value, bool):
@@ -276,7 +285,9 @@ async def _cmd_pool_import(args):
         # Search for matching pool
         matching_pool = None
         for pool in available_pools:
-            if pool.get("name") == args.name or (args.guid and pool.get("guid") == args.guid):
+            if pool.get("name") == args.name or (
+                args.guid and pool.get("guid") == args.guid
+            ):
                 matching_pool = pool
                 break
 

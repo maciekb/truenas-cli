@@ -28,7 +28,9 @@ class SnapshotCommands(CommandGroup):
             _cmd_snapshot_list,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(list_parser, "-d", "dataset", "Dataset name (optional filter)")
+        self.add_optional_argument(
+            list_parser, "-d", "dataset", "Dataset name (optional filter)"
+        )
         self.add_optional_argument(
             list_parser,
             "--full",
@@ -45,8 +47,12 @@ class SnapshotCommands(CommandGroup):
             _cmd_snapshot_create,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(create_parser, "-d", "dataset", "Dataset name", required=True)
-        self.add_optional_argument(create_parser, "-n", "name", "Snapshot name", required=True)
+        self.add_optional_argument(
+            create_parser, "-d", "dataset", "Dataset name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-n", "name", "Snapshot name", required=True
+        )
         self.add_optional_argument(
             create_parser,
             "--recursive",
@@ -218,7 +224,9 @@ async def _cmd_snapshot_rollback(args):
         snapshot_name = args.snapshot
 
         if "@" not in snapshot_name:
-            print(f"Error: Invalid snapshot path. Use format: dataset@snapshot (e.g., tank/data@daily)")
+            print(
+                "Error: Invalid snapshot path. Use format: dataset@snapshot (e.g., tank/data@daily)"
+            )
             return
 
         if not args.force:
@@ -236,7 +244,9 @@ async def _cmd_snapshot_rollback(args):
             "recursive": args.recursive,
         }
 
-        result = await client.call("pool.dataset.snapshot_rollback", [snapshot_name, rollback_params])
+        result = await client.call(
+            "pool.dataset.snapshot_rollback", [snapshot_name, rollback_params]
+        )
 
         if args.json:
             print(json.dumps(result, indent=2))

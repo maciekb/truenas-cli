@@ -44,9 +44,15 @@ class NFSCommands(CommandGroup):
             _cmd_nfs_create,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(create_parser, "-p", "pool", "Pool name", required=True)
-        self.add_optional_argument(create_parser, "-d", "dataset", "Dataset name", required=True)
-        self.add_optional_argument(create_parser, "-c", "comment", "Share comment (optional)")
+        self.add_optional_argument(
+            create_parser, "-p", "pool", "Pool name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-d", "dataset", "Dataset name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-c", "comment", "Share comment (optional)"
+        )
 
         # Delete shares
         delete_parser = self.add_command(
@@ -108,7 +114,9 @@ async def _cmd_nfs_list(args):
                 networks = safe_get(share, "networks", [])
                 if networks and networks != ["*"]:
                     formatted_networks = (
-                        ", ".join(networks) if isinstance(networks, list) else str(networks)
+                        ", ".join(networks)
+                        if isinstance(networks, list)
+                        else str(networks)
                     )
                     print(f"  Networks: {formatted_networks}")
 
@@ -133,7 +141,7 @@ async def _cmd_nfs_create(args):
                 name=dataset_name,
                 dataset_type="FILESYSTEM",
             )
-            print(f"  ✓ Dataset created: " f"{safe_get(dataset, 'name', dataset_name)}")
+            print(f"  ✓ Dataset created: {safe_get(dataset, 'name', dataset_name)}")
             print(f"  Mount path: {safe_get(dataset, 'mountpoint', dataset_path)}")
         except ValueError:
             print("  ℹ Dataset already exists")
@@ -150,7 +158,9 @@ async def _cmd_nfs_create(args):
         if await client.nfs_share_exists_for_path(dataset_path):
             print("  ℹ NFS share for this path already exists")
             shares = await client.get_nfs_shares()
-            share = next((s for s in shares if safe_get(s, "path") == dataset_path), None)
+            share = next(
+                (s for s in shares if safe_get(s, "path") == dataset_path), None
+            )
         else:
             share = await client.create_nfs_share(
                 path=dataset_path,

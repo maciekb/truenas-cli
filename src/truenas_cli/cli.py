@@ -30,8 +30,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow self-signed certs [env: TRUENAS_INSECURE]",
     )
     parent_parser.add_argument("-k", "--api-key", help="API key [env: TRUENAS_API_KEY]")
-    parent_parser.add_argument("-u", "--username", help="Username [env: TRUENAS_USERNAME]")
-    parent_parser.add_argument("-P", "--password", help="Password [env: TRUENAS_PASSWORD]")
+    parent_parser.add_argument(
+        "-u", "--username", help="Username [env: TRUENAS_USERNAME]"
+    )
+    parent_parser.add_argument(
+        "-P", "--password", help="Password [env: TRUENAS_PASSWORD]"
+    )
     parent_parser.add_argument(
         "-v",
         "--verbose",

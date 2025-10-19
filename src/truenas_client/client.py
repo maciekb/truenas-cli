@@ -199,7 +199,9 @@ class TrueNASClient:
                 else:
                     # Use default SSL context with verification
                     # ssl_context = None will use default websockets SSL verification
-                    logger.debug("Using default SSL context with certificate verification")
+                    logger.debug(
+                        "Using default SSL context with certificate verification"
+                    )
             else:
                 logger.warning("SSL is disabled - connection will be unencrypted")
 
@@ -223,7 +225,9 @@ class TrueNASClient:
                 "version": "1",
                 "support": ["1"],
             }
-            logger.debug(f"Sending DDP handshake message: {_sanitize_for_logging(connect_msg)}")
+            logger.debug(
+                f"Sending DDP handshake message: {_sanitize_for_logging(connect_msg)}"
+            )
             await self.ws.send(json.dumps(connect_msg))
 
             # Receive DDP connected response containing session ID
@@ -251,7 +255,9 @@ class TrueNASClient:
 
         except Exception as e:
             elapsed = time.time() - start_time
-            logger.error(f"Connection failed after {elapsed:.2f}s: {type(e).__name__}: {e}")
+            logger.error(
+                f"Connection failed after {elapsed:.2f}s: {type(e).__name__}: {e}"
+            )
             raise TrueNASConnectionError(str(e)) from e
 
     async def disconnect(self) -> None:
@@ -446,7 +452,9 @@ class TrueNASClient:
             return result
         except Exception as e:
             elapsed = time.time() - start_time
-            logger.error(f"API key authentication failed: {type(e).__name__} ({elapsed:.2f}s)")
+            logger.error(
+                f"API key authentication failed: {type(e).__name__} ({elapsed:.2f}s)"
+            )
             raise
 
     async def ensure_connected(self):
@@ -791,7 +799,13 @@ class TrueNASClient:
         return await self.call("sharing.smb.presets")
 
     async def create_smb_share_with_preset(
-        self, path: str, name: str, preset: str, comment: str = "", enabled: bool = True, **kwargs
+        self,
+        path: str,
+        name: str,
+        preset: str,
+        comment: str = "",
+        enabled: bool = True,
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Create SMB share using a preset
@@ -1012,7 +1026,9 @@ class TrueNASClient:
         raise TrueNASNotFoundError(f"Pool '{pool_name}' not found")
 
     # Dataset operations - extended
-    async def get_datasets(self, pool_name: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_datasets(
+        self, pool_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Get all datasets, optionally filtered by pool"""
         if pool_name:
             filters = [["pool", "=", pool_name]]
@@ -1035,7 +1051,9 @@ class TrueNASClient:
         smb_shares = await self.get_smb_shares()
         if smb_shares:
             shares["smb"] = [
-                s for s in smb_shares if s.get("path", "").startswith(f"/mnt/{dataset_name}")
+                s
+                for s in smb_shares
+                if s.get("path", "").startswith(f"/mnt/{dataset_name}")
             ]
 
         # Check NFS shares
@@ -1083,7 +1101,9 @@ class TrueNASClient:
             raise
 
     # NFS Share operations
-    async def create_nfs_share(self, path: str, comment: str = "", **kwargs) -> Dict[str, Any]:
+    async def create_nfs_share(
+        self, path: str, comment: str = "", **kwargs
+    ) -> Dict[str, Any]:
         """
         Create NFS share
 
@@ -1114,7 +1134,9 @@ class TrueNASClient:
             "path": path,
         }
 
-        logger.debug(f"Creating NFS share with params: {json.dumps(params, default=str)}")
+        logger.debug(
+            f"Creating NFS share with params: {json.dumps(params, default=str)}"
+        )
         result = await self.call("sharing.nfs.create", [params])
         logger.debug(f"NFS share create result: {result}")
 
@@ -1243,7 +1265,9 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("pool.snapshot.create", [params])
 
-    async def get_snapshots(self, dataset_name: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_snapshots(
+        self, dataset_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get snapshots, optionally filtered by dataset (pool.snapshot.query)
 
@@ -1275,7 +1299,9 @@ class TrueNASClient:
         dataset_name = snapshot_path.split("@")[0] if "@" in snapshot_path else None
         if dataset_name:
             snapshots = await self.get_snapshots(dataset_name)
-            if not snapshots or not any(s.get("name") == snapshot_path for s in snapshots):
+            if not snapshots or not any(
+                s.get("name") == snapshot_path for s in snapshots
+            ):
                 raise ValueError(f"Snapshot '{snapshot_path}' not found")
 
         return await self.call("pool.snapshot.delete", [snapshot_path])
@@ -1312,9 +1338,453 @@ class TrueNASClient:
         """Get all alerts"""
         return await self.call("alert.list")
 
+    # App/Container operations (TrueNAS SCALE)
+    async def get_apps(self) -> List[Dict[str, Any]]:
+        """
+        Get all installed applications (app.query)
+
+        Returns:
+            List of installed applications with their configuration and status
+
+        Example:
+            >>> apps = await client.get_apps()
+            >>> for app in apps:
+            ...     print(f"{app['name']}: {app['state']}")
+        """
+        return await self.query("app")
+
+    async def get_app(self, app_name: str) -> Dict[str, Any]:
+        """
+        Get application information by name (app.get_instance)
+
+        Args:
+            app_name: Application name
+
+        Returns:
+            Application information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If application doesn't exist
+        """
+        try:
+            result = await self.call("app.get_instance", [app_name])
+            if result is None:
+                raise TrueNASNotFoundError(f"App '{app_name}' not found")
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(f"App '{app_name}' not found") from e
+            raise
+
+    async def get_available_apps(self) -> Dict[str, Any]:
+        """
+        Get available applications from catalog (app.available)
+
+        Returns:
+            Dictionary of available applications organized by train/catalog
+
+        Example:
+            >>> available = await client.get_available_apps()
+            >>> for train, apps in available.items():
+            ...     print(f"Train: {train}")
+        """
+        return await self.call("app.available")
+
+    async def get_app_categories(self) -> List[str]:
+        """
+        Get app categories (app.categories)
+
+        Returns:
+            List of application categories
+        """
+        return await self.call("app.categories")
+
+    async def start_app(self, app_name: str) -> bool:
+        """
+        Start an application (app.start)
+
+        Args:
+            app_name: Application name
+
+        Returns:
+            True if started successfully
+        """
+        return await self.call("app.start", [app_name])
+
+    async def stop_app(self, app_name: str) -> bool:
+        """
+        Stop an application (app.stop)
+
+        Args:
+            app_name: Application name
+
+        Returns:
+            True if stopped successfully
+        """
+        return await self.call("app.stop", [app_name])
+
+    async def create_app(self, values: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create/install a new application (app.create)
+
+        Args:
+            values: Application configuration dictionary
+
+        Returns:
+            Created application information
+
+        Example:
+            >>> config = {
+            ...     "app_name": "plex",
+            ...     "release_name": "my-plex",
+            ...     "version": "1.0.0",
+            ...     "values": {}
+            ... }
+            >>> app = await client.create_app(config)
+        """
+        return await self.call("app.create", [values])
+
+    async def delete_app(self, app_name: str) -> bool:
+        """
+        Delete/uninstall an application (app.delete)
+
+        Args:
+            app_name: Application name
+
+        Returns:
+            True if deleted successfully
+
+        Example:
+            >>> await client.delete_app("my-plex")
+        """
+        return await self.call("app.delete", [app_name])
+
+    async def update_app(self, app_name: str, values: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update application configuration (app.update)
+
+        Args:
+            app_name: Application name
+            values: Updated configuration values
+
+        Returns:
+            Updated application information
+        """
+        return await self.call("app.update", [app_name, values])
+
+    async def upgrade_app(
+        self, app_name: str, version: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upgrade application to a new version (app.upgrade)
+
+        Args:
+            app_name: Application name
+            version: Target version (if None, upgrades to latest)
+
+        Returns:
+            Upgraded application information
+        """
+        params = [app_name]
+        if version:
+            params.append({"app_version": version})
+        return await self.call("app.upgrade", params)
+
+    async def redeploy_app(self, app_name: str) -> Dict[str, Any]:
+        """
+        Redeploy an application (app.redeploy)
+
+        Useful for applying configuration changes or restarting containers.
+
+        Args:
+            app_name: Application name
+
+        Returns:
+            Redeployed application information
+        """
+        return await self.call("app.redeploy", [app_name])
+
+    async def get_app_config(self) -> Dict[str, Any]:
+        """
+        Get applications configuration (app.config)
+
+        Returns:
+            Global apps configuration including pool settings
+        """
+        return await self.call("app.config")
+
+    # App image operations
+    async def get_app_images(self) -> List[Dict[str, Any]]:
+        """
+        Get Docker images (app.image.query)
+
+        Returns:
+            List of available Docker images
+        """
+        return await self.query("app.image")
+
+    async def pull_app_image(self, image: str, tag: str = "latest") -> bool:
+        """
+        Pull a Docker image (app.image.pull)
+
+        Args:
+            image: Image name (e.g., "nginx", "postgres")
+            tag: Image tag (default: "latest")
+
+        Returns:
+            True if pulled successfully
+        """
+        params = {"from_image": image, "tag": tag}
+        return await self.call("app.image.pull", [params])
+
+    async def delete_app_image(self, image_id: str) -> bool:
+        """
+        Delete a Docker image (app.image.delete)
+
+        Args:
+            image_id: Image ID
+
+        Returns:
+            True if deleted successfully
+        """
+        return await self.call("app.image.delete", [image_id])
+
+    # User operations
+    async def get_users(self) -> List[Dict[str, Any]]:
+        """
+        Get all users (user.query)
+
+        Returns:
+            List of user dictionaries
+
+        Example:
+            >>> users = await client.get_users()
+            >>> for user in users:
+            ...     print(f"{user['username']}: {user['full_name']}")
+        """
+        return await self.query("user")
+
+    async def get_user(self, user_id: int) -> Dict[str, Any]:
+        """
+        Get user information by ID (user.get_instance)
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            User information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If user doesn't exist
+        """
+        try:
+            result = await self.call("user.get_instance", [user_id])
+            if result is None:
+                raise TrueNASNotFoundError(f"User with ID {user_id} not found")
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(f"User with ID {user_id} not found") from e
+            raise
+
+    async def create_user(
+        self,
+        username: str,
+        full_name: str,
+        password: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Create a new user (user.create)
+
+        Args:
+            username: Username (login name)
+            full_name: Full name of the user
+            password: Password (optional, can set later)
+            **kwargs: Additional user parameters:
+                - uid: User ID (auto-assigned if not provided)
+                - group: Primary group ID
+                - groups: List of additional group IDs
+                - home: Home directory path
+                - shell: Shell path (use get_shell_choices() for options)
+                - email: Email address
+                - password_disabled: Disable password authentication
+                - ssh_password_enabled: Enable SSH password auth
+                - smbhash: SMB password hash
+                - sudo_commands: List of sudo commands
+                - sudo_commands_nopasswd: Sudo without password
+
+        Returns:
+            Created user information
+
+        Example:
+            >>> user = await client.create_user(
+            ...     "john",
+            ...     "John Doe",
+            ...     password="secret123",
+            ...     email="john@example.com"
+            ... )
+        """
+        params = {"username": username, "full_name": full_name}
+
+        if password:
+            params["password"] = password
+
+        params.update(kwargs)
+        return await self.call("user.create", [params])
+
+    async def update_user(self, user_id: int, **kwargs) -> Dict[str, Any]:
+        """
+        Update user information (user.update)
+
+        Args:
+            user_id: User ID
+            **kwargs: Fields to update (same as create_user)
+
+        Returns:
+            Updated user information
+        """
+        return await self.call("user.update", [user_id, kwargs])
+
+    async def delete_user(self, user_id: int, delete_group: bool = False) -> bool:
+        """
+        Delete a user (user.delete)
+
+        Args:
+            user_id: User ID
+            delete_group: Also delete the user's primary group
+
+        Returns:
+            True if deleted successfully
+        """
+        params = {"delete_group": delete_group}
+        return await self.call("user.delete", [user_id, params])
+
+    async def set_user_password(self, user_id: int, password: str) -> bool:
+        """
+        Set user password (user.set_password)
+
+        Args:
+            user_id: User ID
+            password: New password
+
+        Returns:
+            True if password set successfully
+        """
+        return await self.call("user.set_password", [user_id, password])
+
+    async def get_shell_choices(self) -> List[str]:
+        """
+        Get available shell choices (user.shell_choices)
+
+        Returns:
+            List of available shell paths
+        """
+        return await self.call("user.shell_choices")
+
+    # Group operations
+    async def get_groups(self) -> List[Dict[str, Any]]:
+        """
+        Get all groups (group.query)
+
+        Returns:
+            List of group dictionaries
+
+        Example:
+            >>> groups = await client.get_groups()
+            >>> for group in groups:
+            ...     print(f"{group['group']}: GID {group['gid']}")
+        """
+        return await self.query("group")
+
+    async def get_group(self, group_id: int) -> Dict[str, Any]:
+        """
+        Get group information by ID (group.get_instance)
+
+        Args:
+            group_id: Group ID
+
+        Returns:
+            Group information dictionary
+
+        Raises:
+            TrueNASNotFoundError: If group doesn't exist
+        """
+        try:
+            result = await self.call("group.get_instance", [group_id])
+            if result is None:
+                raise TrueNASNotFoundError(f"Group with ID {group_id} not found")
+            return result
+        except TrueNASAPIError as e:
+            error_msg = str(e).lower()
+            if "not found" in error_msg or "does not exist" in error_msg:
+                raise TrueNASNotFoundError(f"Group with ID {group_id} not found") from e
+            raise
+
+    async def create_group(
+        self, name: str, gid: Optional[int] = None, **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Create a new group (group.create)
+
+        Args:
+            name: Group name
+            gid: Group ID (auto-assigned if not provided)
+            **kwargs: Additional group parameters:
+                - sudo_commands: List of sudo commands
+                - sudo_commands_nopasswd: Sudo without password
+                - smb: Enable SMB access
+
+        Returns:
+            Created group information
+
+        Example:
+            >>> group = await client.create_group("developers", gid=1100)
+        """
+        params = {"name": name}
+
+        if gid is not None:
+            params["gid"] = gid
+
+        params.update(kwargs)
+        return await self.call("group.create", [params])
+
+    async def update_group(self, group_id: int, **kwargs) -> Dict[str, Any]:
+        """
+        Update group information (group.update)
+
+        Args:
+            group_id: Group ID
+            **kwargs: Fields to update
+
+        Returns:
+            Updated group information
+        """
+        return await self.call("group.update", [group_id, kwargs])
+
+    async def delete_group(self, group_id: int) -> bool:
+        """
+        Delete a group (group.delete)
+
+        Args:
+            group_id: Group ID
+
+        Returns:
+            True if deleted successfully
+
+        Raises:
+            TrueNASAPIError: If group is in use
+        """
+        return await self.call("group.delete", [group_id])
+
     # SMB Delete extended
     async def delete_smb_share_with_dataset(
-        self, share_id: int, delete_dataset: bool = False, dataset_name: Optional[str] = None
+        self,
+        share_id: int,
+        delete_dataset: bool = False,
+        dataset_name: Optional[str] = None,
     ) -> bool:
         """Delete SMB share and optionally its dataset"""
         await self.delete_smb_share(share_id)

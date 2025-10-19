@@ -135,7 +135,9 @@ def _collect_share_details(
     for share in smb_shares:
         path = share.get("path", "")
         if path == norm or path.startswith(prefix):
-            details["smb"].append(f"{share.get('name', 'N/A')} ({share.get('path', 'N/A')})")
+            details["smb"].append(
+                f"{share.get('name', 'N/A')} ({share.get('path', 'N/A')})"
+            )
     for share in nfs_shares:
         entries = []
         path = safe_get(share, "path")
@@ -193,7 +195,9 @@ class DatasetCommands(CommandGroup):
             _cmd_dataset_list,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(list_parser, "-p", "pool", "Pool name (optional filter)")
+        self.add_optional_argument(
+            list_parser, "-p", "pool", "Pool name (optional filter)"
+        )
         self.add_optional_argument(
             list_parser,
             "--empty",
@@ -217,8 +221,12 @@ class DatasetCommands(CommandGroup):
             _cmd_dataset_create,
             parent_parser=parent_parser,
         )
-        self.add_optional_argument(create_parser, "-p", "pool", "Pool name", required=True)
-        self.add_optional_argument(create_parser, "-d", "dataset", "Dataset name", required=True)
+        self.add_optional_argument(
+            create_parser, "-p", "pool", "Pool name", required=True
+        )
+        self.add_optional_argument(
+            create_parser, "-d", "dataset", "Dataset name", required=True
+        )
         self.add_optional_argument(
             create_parser,
             "--type",
@@ -307,7 +315,11 @@ async def _cmd_dataset_list(args):
     async def handler(client: TrueNASClient):
         datasets = await client.get_datasets(args.pool if args.pool else None)
 
-        smb_shares, nfs_shares, snapshots_by_dataset = await _fetch_share_snapshot_context(client)
+        (
+            smb_shares,
+            nfs_shares,
+            snapshots_by_dataset,
+        ) = await _fetch_share_snapshot_context(client)
 
         if args.empty:
             filtered = []
@@ -341,7 +353,9 @@ async def _cmd_dataset_list(args):
             print(f"  Mountpoint: {ds_mountpoint}")
             creation = ds.get("creation", {}).get("parsed")
             if creation:
-                timestamp = creation.get("$date") if isinstance(creation, dict) else None
+                timestamp = (
+                    creation.get("$date") if isinstance(creation, dict) else None
+                )
                 if isinstance(timestamp, (int, float)):
                     try:
                         dt = datetime.fromtimestamp(timestamp / 1000)
@@ -359,7 +373,15 @@ async def _cmd_dataset_list(args):
 
             if args.full:
                 # Show all available fields
-                excluded_keys = {"name", "type", "mountpoint", "creation", "used", "available", "comments"}
+                excluded_keys = {
+                    "name",
+                    "type",
+                    "mountpoint",
+                    "creation",
+                    "used",
+                    "available",
+                    "comments",
+                }
                 for key, value in sorted(ds.items()):
                     if key not in excluded_keys:
                         if isinstance(value, bool):
@@ -378,9 +400,13 @@ async def _cmd_dataset_list(args):
                 )
                 ds_shares = []
                 if share_details["smb"]:
-                    ds_shares.extend([f"SMB: {entry}" for entry in share_details["smb"]])
+                    ds_shares.extend(
+                        [f"SMB: {entry}" for entry in share_details["smb"]]
+                    )
                 if share_details["nfs"]:
-                    ds_shares.extend([f"NFS: {entry}" for entry in share_details["nfs"]])
+                    ds_shares.extend(
+                        [f"NFS: {entry}" for entry in share_details["nfs"]]
+                    )
 
                 if ds_shares:
                     print("  Shares:")
@@ -411,7 +437,9 @@ async def _cmd_dataset_create(args):
             return
 
         print(f"\n✓ Dataset created: {safe_get(dataset, 'name', dataset_name)}")
-        print(f"  Mountpoint: " f"{safe_get(dataset, 'mountpoint', f'/mnt/{dataset_name}')}")
+        print(
+            f"  Mountpoint: {safe_get(dataset, 'mountpoint', f'/mnt/{dataset_name}')}"
+        )
 
     await run_command(args, handler)
 
@@ -423,7 +451,9 @@ async def _cmd_dataset_delete(args):
 
         if args.pool:
             dataset_map = {
-                name: ds for name, ds in dataset_map_all.items() if ds.get("pool") == args.pool
+                name: ds
+                for name, ds in dataset_map_all.items()
+                if ds.get("pool") == args.pool
             }
         else:
             dataset_map = dict(dataset_map_all)
@@ -432,10 +462,16 @@ async def _cmd_dataset_delete(args):
             print(f"No datasets found in pool '{args.pool}'.")
             return
 
-        smb_shares, nfs_shares, snapshots_by_dataset = await _fetch_share_snapshot_context(client)
+        (
+            smb_shares,
+            nfs_shares,
+            snapshots_by_dataset,
+        ) = await _fetch_share_snapshot_context(client)
 
         if not args.datasets and not args.empty:
-            print("Error: specify dataset names or use --empty to target empty datasets.")
+            print(
+                "Error: specify dataset names or use --empty to target empty datasets."
+            )
             raise SystemExit(1)
 
         targets: List[str] = []
@@ -461,7 +497,9 @@ async def _cmd_dataset_delete(args):
                         for item in wrong_pool:
                             print(f"  • {item}")
 
-                missing = [name for name in args.datasets if name not in empty_dataset_map]
+                missing = [
+                    name for name in args.datasets if name not in empty_dataset_map
+                ]
                 if missing:
                     print("Skipping non-empty datasets:")
                     for item in missing:
@@ -480,7 +518,8 @@ async def _cmd_dataset_delete(args):
             wrong_pool = [
                 name
                 for name in targets
-                if name in dataset_map_all and dataset_map_all[name].get("pool") != args.pool
+                if name in dataset_map_all
+                and dataset_map_all[name].get("pool") != args.pool
             ]
             if wrong_pool:
                 print(f"Skipping datasets outside pool '{args.pool}':")
@@ -653,7 +692,7 @@ async def _cmd_dataset_rename(args):
             print(json.dumps(result, indent=2))
             return
 
-        print(f"✓ Dataset renamed successfully")
+        print("✓ Dataset renamed successfully")
         print(f"  Old name: {dataset_name}")
         print(f"  New name: {new_name}")
 
