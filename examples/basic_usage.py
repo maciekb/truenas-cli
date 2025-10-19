@@ -86,6 +86,16 @@ async def main():
             if len(datasets) > 5:
                 print(f"  ... and {len(datasets) - 5} more")
 
+            # List snapshot tasks
+            logger.info("Fetching snapshot tasks...")
+            snapshot_tasks = await client.get_snapshot_tasks()
+            print(f"\n=== Snapshot Tasks ({len(snapshot_tasks)}) ===")
+            for task in snapshot_tasks[:5]:
+                status = "enabled" if task.get("enabled") else "disabled"
+                print(f"  - [{task.get('id')}] {task.get('dataset')} ({status})")
+            if len(snapshot_tasks) > 5:
+                print(f"  ... and {len(snapshot_tasks) - 5} more")
+
             logger.info("Example completed successfully")
 
         except Exception as e:

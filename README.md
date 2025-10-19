@@ -101,6 +101,7 @@ uv run python truenas-cli.py app stop plex
 - `pool import` - Import existing pool
 - `pool scrub list|run|update|delete` - Manage scrub schedules and runs
 - `pool resilver status|update` - Manage resilver priority windows
+- `pool snapshottask list|create|update|delete|run` - Manage periodic snapshot tasks
 
 ### Datasets
 - `dataset list` - List datasets

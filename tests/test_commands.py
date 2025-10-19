@@ -208,6 +208,59 @@ class TestReplicationCommands:
 
 
 @pytest.mark.unit
+class TestPoolHelperUtilities:
+    """Test helper utilities used by pool commands."""
+
+    def test_parse_cron_schedule_valid(self):
+        """Ensure cron schedule parsing works."""
+        from truenas_cli.commands.pool import _parse_cron_schedule
+
+        result = _parse_cron_schedule("0 * * * *")
+        assert result == {
+            "minute": "0",
+            "hour": "*",
+            "dom": "*",
+            "month": "*",
+            "dow": "*",
+        }
+
+    def test_parse_cron_schedule_invalid(self):
+        """Ensure invalid cron schedule raises error."""
+        from truenas_cli.commands.pool import _parse_cron_schedule
+
+        with pytest.raises(ValueError):
+            _parse_cron_schedule("0 * * *")
+
+    def test_parse_weekday_list_valid(self):
+        """Ensure weekday parsing returns integers."""
+        from truenas_cli.commands.pool import _parse_weekday_list
+
+        assert _parse_weekday_list("1,2,7") == [1, 2, 7]
+
+    def test_parse_weekday_list_invalid(self):
+        """Ensure invalid weekdays raise."""
+        from truenas_cli.commands.pool import _parse_weekday_list
+
+        with pytest.raises(ValueError):
+            _parse_weekday_list("0,8")
+
+    def test_build_schedule_helper(self):
+        """Ensure schedule builder attaches window."""
+        from truenas_cli.commands.pool import _build_schedule
+
+        result = _build_schedule("0 2 * * 1", "01:00", "03:00")
+        assert result == {
+            "minute": "0",
+            "hour": "2",
+            "dom": "*",
+            "month": "*",
+            "dow": "1",
+            "begin": "01:00",
+            "end": "03:00",
+        }
+
+
+@pytest.mark.unit
 class TestCloudSyncCommands:
     """Test cloudsync command group."""
 

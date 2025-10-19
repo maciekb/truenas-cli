@@ -1065,6 +1065,30 @@ class TrueNASClient:
         """Update resilver priority configuration."""
         return await self.call("pool.resilver.update", [data])
 
+    async def get_snapshot_tasks(self) -> List[Dict[str, Any]]:
+        """Get all periodic snapshot tasks."""
+        return await self.query("pool.snapshottask")
+
+    async def create_snapshot_task(self, **data: Any) -> Dict[str, Any]:
+        """Create a periodic snapshot task."""
+        return await self.call("pool.snapshottask.create", [data])
+
+    async def update_snapshot_task(
+        self,
+        task_id: int,
+        **data: Any,
+    ) -> Dict[str, Any]:
+        """Update a periodic snapshot task."""
+        return await self.call("pool.snapshottask.update", [task_id, data])
+
+    async def delete_snapshot_task(self, task_id: int) -> bool:
+        """Delete a periodic snapshot task."""
+        return await self.call("pool.snapshottask.delete", [task_id])
+
+    async def run_snapshot_task(self, task_id: int) -> Any:
+        """Run a periodic snapshot task immediately."""
+        return await self.call("pool.snapshottask.run", [task_id])
+
     # Dataset operations - extended
     async def get_datasets(
         self, pool_name: Optional[str] = None

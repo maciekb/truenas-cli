@@ -304,6 +304,208 @@ class PoolCommands(CommandGroup):
             help="Disable the resilver window",
         )
 
+        # Snapshot task commands
+        snap_parser = subparsers.add_parser(
+            "snapshottask",
+            help="Manage periodic snapshot tasks",
+            parents=parents,
+        )
+        snap_parser.set_defaults(
+            func=_cmd_pool_snapshottask_root,
+            _snap_parser=snap_parser,
+        )
+        snap_sub = snap_parser.add_subparsers(dest="snap_command")
+
+        snap_list_parser = snap_sub.add_parser(
+            "list",
+            help="List snapshot tasks (pool.snapshottask.query)",
+            parents=parents,
+        )
+        snap_list_parser.set_defaults(func=_cmd_pool_snapshottask_list)
+        snap_list_parser.add_argument(
+            "--dataset",
+            help="Filter by dataset name",
+        )
+        snap_list_parser.add_argument(
+            "--full",
+            action="store_true",
+            help="Show full task payload",
+        )
+
+        snap_create_parser = snap_sub.add_parser(
+            "create",
+            help="Create snapshot task (pool.snapshottask.create)",
+            parents=parents,
+        )
+        snap_create_parser.set_defaults(func=_cmd_pool_snapshottask_create)
+        snap_create_parser.add_argument(
+            "dataset",
+            help="Dataset to snapshot (e.g., tank/data)",
+        )
+        snap_create_parser.add_argument(
+            "--naming-schema",
+            dest="naming_schema",
+            required=True,
+            help="Snapshot naming schema (must include %Y %m %d %H %M)",
+        )
+        snap_create_parser.add_argument(
+            "--lifetime-value",
+            dest="lifetime_value",
+            required=True,
+            type=int,
+            help="Retention length value",
+        )
+        snap_create_parser.add_argument(
+            "--lifetime-unit",
+            dest="lifetime_unit",
+            required=True,
+            choices=["HOUR", "DAY", "WEEK", "MONTH", "YEAR"],
+            help="Retention time unit",
+        )
+        snap_create_parser.add_argument(
+            "--schedule",
+            required=True,
+            help="Cron-style schedule (minute hour dom month dow)",
+        )
+        snap_create_parser.add_argument(
+            "--begin",
+            help="Optional start window (HH:MM)",
+        )
+        snap_create_parser.add_argument(
+            "--end",
+            help="Optional end window (HH:MM)",
+        )
+        snap_create_parser.add_argument(
+            "--recursive",
+            action="store_true",
+            help="Include child datasets",
+        )
+        snap_create_parser.add_argument(
+            "--exclude",
+            action="append",
+            help="Dataset to exclude (repeat for multiple)",
+        )
+        snap_toggle = snap_create_parser.add_mutually_exclusive_group()
+        snap_toggle.add_argument(
+            "--disable",
+            action="store_true",
+            dest="disable",
+            help="Create task in disabled state",
+        )
+
+        snap_update_parser = snap_sub.add_parser(
+            "update",
+            help="Update snapshot task (pool.snapshottask.update)",
+            parents=parents,
+        )
+        snap_update_parser.set_defaults(func=_cmd_pool_snapshottask_update)
+        snap_update_parser.add_argument(
+            "task_id",
+            type=int,
+            help="Snapshot task ID",
+        )
+        snap_update_parser.add_argument(
+            "--dataset",
+            help="New dataset path",
+        )
+        snap_update_parser.add_argument(
+            "--naming-schema",
+            dest="naming_schema",
+            help="New naming schema",
+        )
+        snap_update_parser.add_argument(
+            "--lifetime-value",
+            dest="lifetime_value",
+            type=int,
+            help="Retention length value",
+        )
+        snap_update_parser.add_argument(
+            "--lifetime-unit",
+            dest="lifetime_unit",
+            choices=["HOUR", "DAY", "WEEK", "MONTH", "YEAR"],
+            help="Retention time unit",
+        )
+        snap_update_parser.add_argument(
+            "--schedule",
+            help="Cron-style schedule (minute hour dom month dow)",
+        )
+        snap_update_parser.add_argument(
+            "--begin",
+            help="Start window (HH:MM)",
+        )
+        snap_update_parser.add_argument(
+            "--end",
+            help="End window (HH:MM)",
+        )
+        snap_exclude_group = snap_update_parser.add_mutually_exclusive_group()
+        snap_exclude_group.add_argument(
+            "--exclude",
+            action="append",
+            help="Replace exclusion list (repeat for multiple)",
+        )
+        snap_exclude_group.add_argument(
+            "--clear-exclude",
+            action="store_true",
+            dest="clear_exclude",
+            help="Clear all exclusions",
+        )
+        snap_toggle_enable = snap_update_parser.add_mutually_exclusive_group()
+        snap_toggle_enable.add_argument(
+            "--enable",
+            action="store_true",
+            dest="enable",
+            help="Enable the task",
+        )
+        snap_toggle_enable.add_argument(
+            "--disable",
+            action="store_true",
+            dest="disable",
+            help="Disable the task",
+        )
+        snap_toggle_recursive = snap_update_parser.add_mutually_exclusive_group()
+        snap_toggle_recursive.add_argument(
+            "--recursive",
+            action="store_true",
+            dest="recursive",
+            help="Enable recursion",
+        )
+        snap_toggle_recursive.add_argument(
+            "--no-recursive",
+            action="store_false",
+            dest="recursive",
+            help="Disable recursion",
+        )
+        snap_update_parser.set_defaults(recursive=None)
+
+        snap_delete_parser = snap_sub.add_parser(
+            "delete",
+            help="Delete snapshot task (pool.snapshottask.delete)",
+            parents=parents,
+        )
+        snap_delete_parser.set_defaults(func=_cmd_pool_snapshottask_delete)
+        snap_delete_parser.add_argument(
+            "task_id",
+            type=int,
+            help="Snapshot task ID",
+        )
+        snap_delete_parser.add_argument(
+            "--force",
+            action="store_true",
+            help="Skip confirmation prompt",
+        )
+
+        snap_run_parser = snap_sub.add_parser(
+            "run",
+            help="Run snapshot task immediately (pool.snapshottask.run)",
+            parents=parents,
+        )
+        snap_run_parser.set_defaults(func=_cmd_pool_snapshottask_run)
+        snap_run_parser.add_argument(
+            "task_id",
+            type=int,
+            help="Snapshot task ID",
+        )
+
 
 async def _cmd_pool_list(args):
     async def handler(client: TrueNASClient):
@@ -795,5 +997,244 @@ async def _cmd_pool_resilver_update(args: argparse.Namespace) -> None:
             return
 
         print("✓ Resilver configuration updated")
+
+    await run_command(args, handler)
+
+
+def _format_snapshot_schedule(schedule: Optional[Dict[str, Any]]) -> str:
+    """Format snapshot task schedule."""
+    if not isinstance(schedule, dict):
+        return "N/A"
+    cron = _format_scrub_schedule(schedule)
+    begin = schedule.get("begin")
+    end = schedule.get("end")
+    window = ""
+    if begin or end:
+        begin_str = begin or "00:00"
+        end_str = end or "24:00"
+        window = f" [{begin_str}-{end_str}]"
+    return f"{cron}{window}"
+
+
+def _format_lifetime(value: Optional[int], unit: Optional[str]) -> str:
+    """Format lifetime display."""
+    if value is None or unit is None:
+        return "N/A"
+    return f"{value} {unit.lower()}(s)"
+
+
+def _build_schedule(
+    expr: Optional[str],
+    begin: Optional[str],
+    end: Optional[str],
+) -> Optional[Dict[str, str]]:
+    """Construct schedule payload from CLI arguments."""
+    if not expr:
+        return None
+    schedule = _parse_cron_schedule(expr)
+    if begin:
+        schedule["begin"] = begin
+    if end:
+        schedule["end"] = end
+    return schedule
+
+
+async def _cmd_pool_snapshottask_root(args: argparse.Namespace) -> None:
+    """Handle ``pool snapshottask`` root without subcommand."""
+
+    parser = getattr(args, "_snap_parser", None)
+    if isinstance(parser, argparse.ArgumentParser):
+        parser.print_help()
+    else:
+        print("Specify a snapshottask subcommand. Use --help for options.")
+
+
+async def _cmd_pool_snapshottask_list(args: argparse.Namespace) -> None:
+    """List periodic snapshot tasks."""
+
+    async def handler(client: TrueNASClient) -> None:
+        tasks = await client.get_snapshot_tasks()
+
+        if args.dataset:
+            dataset_lower = args.dataset.lower()
+            tasks = [
+                task
+                for task in tasks
+                if str(safe_get(task, "dataset", "")).lower() == dataset_lower
+            ]
+
+        if args.json:
+            print(json.dumps(tasks, indent=2))
+            return
+
+        print("\n=== Snapshot Tasks ===")
+        if not tasks:
+            message = (
+                f"No snapshot tasks found for dataset '{args.dataset}'."
+                if args.dataset
+                else "No snapshot tasks configured."
+            )
+            print(message)
+            return
+
+        for task in tasks:
+            task_id = safe_get(task, "id", "N/A")
+            dataset = safe_get(task, "dataset", "N/A")
+            enabled = safe_get(task, "enabled", False)
+            naming_schema = safe_get(task, "naming_schema", "N/A")
+            lifetime_value = safe_get(task, "lifetime_value")
+            lifetime_unit = safe_get(task, "lifetime_unit")
+            recursive = safe_get(task, "recursive", False)
+            exclude = safe_get(task, "exclude", [])
+            schedule = _format_snapshot_schedule(
+                safe_get(task, "schedule", {}),
+            )
+
+            icon = "✓" if enabled else "✗"
+            print(f"\n[{task_id}] {dataset} {icon}")
+            print(f"  Naming: {naming_schema}")
+            print(f"  Schedule: {schedule}")
+            print(f"  Lifetime: {_format_lifetime(lifetime_value, lifetime_unit)}")
+            print(f"  Recursive: {'Yes' if recursive else 'No'}")
+            if exclude:
+                print(f"  Exclude: {', '.join(map(str, exclude))}")
+
+            if args.full:
+                filtered = {
+                    k: v
+                    for k, v in task.items()
+                    if k
+                    not in {
+                        "id",
+                        "dataset",
+                        "enabled",
+                        "naming_schema",
+                        "schedule",
+                        "lifetime_value",
+                        "lifetime_unit",
+                        "recursive",
+                        "exclude",
+                    }
+                }
+                if filtered:
+                    print("  Extra:")
+                    for key, value in sorted(filtered.items()):
+                        print(f"    {key}: {value}")
+
+    await run_command(args, handler)
+
+
+async def _cmd_pool_snapshottask_create(args: argparse.Namespace) -> None:
+    """Create a new periodic snapshot task."""
+
+    async def handler(client: TrueNASClient) -> None:
+        schedule = _build_schedule(args.schedule, args.begin, args.end)
+        if schedule is None:
+            raise ValueError("Schedule expression is required.")
+
+        payload: Dict[str, Any] = {
+            "dataset": args.dataset,
+            "naming_schema": args.naming_schema,
+            "lifetime_value": args.lifetime_value,
+            "lifetime_unit": args.lifetime_unit,
+            "schedule": schedule,
+            "enabled": not args.disable,
+        }
+
+        if args.recursive:
+            payload["recursive"] = True
+        if args.exclude:
+            payload["exclude"] = args.exclude
+
+        task = await client.create_snapshot_task(**payload)
+
+        if args.json:
+            print(json.dumps(task, indent=2))
+            return
+
+        task_id = safe_get(task, "id", "N/A")
+        print(f"✓ Snapshot task created (ID {task_id})")
+
+    await run_command(args, handler)
+
+
+async def _cmd_pool_snapshottask_update(args: argparse.Namespace) -> None:
+    """Update an existing periodic snapshot task."""
+
+    async def handler(client: TrueNASClient) -> None:
+        payload: Dict[str, Any] = {}
+
+        if args.dataset:
+            payload["dataset"] = args.dataset
+        if args.naming_schema:
+            payload["naming_schema"] = args.naming_schema
+        if args.lifetime_value is not None:
+            payload["lifetime_value"] = args.lifetime_value
+        if args.lifetime_unit:
+            payload["lifetime_unit"] = args.lifetime_unit
+
+        schedule = _build_schedule(args.schedule, args.begin, args.end)
+        if schedule is not None:
+            payload["schedule"] = schedule
+
+        if args.exclude:
+            payload["exclude"] = args.exclude
+        elif getattr(args, "clear_exclude", False):
+            payload["exclude"] = []
+
+        if args.enable:
+            payload["enabled"] = True
+        elif args.disable:
+            payload["enabled"] = False
+
+        if args.recursive is not None:
+            payload["recursive"] = args.recursive
+
+        if not payload:
+            raise ValueError("No update parameters provided.")
+
+        result = await client.update_snapshot_task(args.task_id, **payload)
+
+        if args.json:
+            print(json.dumps(result, indent=2))
+            return
+
+        print(f"✓ Snapshot task {args.task_id} updated")
+
+    await run_command(args, handler)
+
+
+async def _cmd_pool_snapshottask_delete(args: argparse.Namespace) -> None:
+    """Delete a periodic snapshot task."""
+
+    async def handler(client: TrueNASClient) -> None:
+        if not args.force:
+            confirm = input(f"Delete snapshot task {args.task_id}? (yes/no): ")
+            if confirm.lower() != "yes":
+                print("Cancelled.")
+                return
+
+        await client.delete_snapshot_task(args.task_id)
+
+        if args.json:
+            print(json.dumps({"deleted": args.task_id}, indent=2))
+            return
+
+        print(f"✓ Snapshot task {args.task_id} deleted")
+
+    await run_command(args, handler)
+
+
+async def _cmd_pool_snapshottask_run(args: argparse.Namespace) -> None:
+    """Run a periodic snapshot task immediately."""
+
+    async def handler(client: TrueNASClient) -> None:
+        await client.run_snapshot_task(args.task_id)
+
+        if args.json:
+            print(json.dumps({"ran": args.task_id}, indent=2))
+            return
+
+        print(f"✓ Snapshot task {args.task_id} queued")
 
     await run_command(args, handler)

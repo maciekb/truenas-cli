@@ -215,3 +215,74 @@ async def test_update_resilver_config_calls_api():
         "pool.resilver.update",
         [{"enabled": False, "begin": "18:00"}],
     )
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_get_snapshot_tasks_calls_query():
+    """Test get_snapshot_tasks delegates to query."""
+    client = TrueNASClient("test.local")
+    client.call = AsyncMock(return_value=[{"id": 7}])
+
+    result = await client.get_snapshot_tasks()
+
+    assert result == [{"id": 7}]
+    client.call.assert_awaited_once_with("pool.snapshottask.query", [[]])
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_create_snapshot_task_calls_api():
+    """Test create_snapshot_task forwards payload."""
+    client = TrueNASClient("test.local")
+    client.call = AsyncMock(return_value={"id": 9})
+
+    payload = {
+        "dataset": "tank/data",
+        "naming_schema": "auto_%Y-%m-%d_%H-%M",
+    }
+    result = await client.create_snapshot_task(**payload)
+
+    assert result == {"id": 9}
+    client.call.assert_awaited_once_with("pool.snapshottask.create", [payload])
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_update_snapshot_task_calls_api():
+    """Test update_snapshot_task forwards updates."""
+    client = TrueNASClient("test.local")
+    client.call = AsyncMock(return_value={"id": 11})
+
+    result = await client.update_snapshot_task(11, enabled=False)
+
+    assert result == {"id": 11}
+    client.call.assert_awaited_once_with(
+        "pool.snapshottask.update",
+        [11, {"enabled": False}],
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_delete_snapshot_task_calls_api():
+    """Test delete_snapshot_task forwards id."""
+    client = TrueNASClient("test.local")
+    client.call = AsyncMock(return_value=True)
+
+    result = await client.delete_snapshot_task(12)
+
+    assert result is True
+    client.call.assert_awaited_once_with("pool.snapshottask.delete", [12])
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_run_snapshot_task_calls_api():
+    """Test run_snapshot_task forwards id."""
+    client = TrueNASClient("test.local")
+    client.call = AsyncMock(return_value=None)
+
+    await client.run_snapshot_task(13)
+
+    client.call.assert_awaited_once_with("pool.snapshottask.run", [13])
