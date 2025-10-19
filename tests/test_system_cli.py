@@ -54,3 +54,28 @@ async def test_system_shutdown_rejects_empty_reason(monkeypatch):
         await system_module._cmd_system_shutdown(args)
 
     client.call.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_system_halt_uses_shutdown(monkeypatch):
+    """Ensure halt leverages system.shutdown with zero delay."""
+    from truenas_cli.commands import system as system_module
+
+    client = AsyncMock()
+
+    async def fake_run_command(args, handler, require_auth=True):
+        await handler(client)
+
+    monkeypatch.setattr(system_module, "run_command", fake_run_command)
+
+    args = argparse.Namespace(
+        force=False,
+        json=False,
+    )
+
+    await system_module._cmd_system_halt(args)
+
+    client.call.assert_awaited_once_with(
+        "system.shutdown",
+        [system_module.DEFAULT_HALT_REASON, {"delay": None}],
+    )

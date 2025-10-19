@@ -5,12 +5,21 @@ from __future__ import annotations
 import argparse
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Sequence
 
 from truenas_client import TrueNASClient
 
 from ..core import format_size, run_command, safe_get
 from .base import CommandGroup
+
+VDEV_TYPE_MAP = {
+    "stripe": "STRIPE",
+    "mirror": "MIRROR",
+    "raidz": "RAIDZ1",
+    "raidz1": "RAIDZ1",
+    "raidz2": "RAIDZ2",
+    "raidz3": "RAIDZ3",
+}
 
 
 class PoolCommands(CommandGroup):
@@ -112,6 +121,12 @@ class PoolCommands(CommandGroup):
             "guid",
             "Pool GUID (optional)",
         )
+        self.add_optional_argument(
+            import_parser,
+            "--new-name",
+            "new_name",
+            "Rename pool during import",
+        )
 
         # Export pool
         export_parser = self.add_command(
@@ -130,7 +145,21 @@ class PoolCommands(CommandGroup):
             export_parser,
             ["-f", "--force"],
             "force",
-            "Force export even if in use",
+            "Restart services and cascade attachments when exporting",
+            action="store_true",
+        )
+        self.add_optional_argument(
+            export_parser,
+            "--cascade",
+            "cascade",
+            "Delete pool attachments before export",
+            action="store_true",
+        )
+        self.add_optional_argument(
+            export_parser,
+            "--restart-services",
+            "restart_services",
+            "Restart services that have open files on the pool",
             action="store_true",
         )
 
@@ -159,6 +188,13 @@ class PoolCommands(CommandGroup):
             ["-R", "--remove-data"],
             "remove_data",
             "Remove all data from disks",
+            action="store_true",
+        )
+        self.add_optional_argument(
+            delete_parser,
+            "--restart-services",
+            "restart_services",
+            "Restart services that have open files on the pool",
             action="store_true",
         )
 
@@ -586,28 +622,55 @@ async def _cmd_pool_create(args):
     """Handle ``pool create`` using ``pool.create``."""
 
     async def handler(client: TrueNASClient):
-        disk_list = [d.strip() for d in args.disks.split(",")]
+        disk_list = [disk.strip() for disk in args.disks.split(",") if disk.strip()]
+        if not disk_list:
+            raise ValueError("At least one disk must be specified for pool creation.")
 
-        # Build vdevs structure
-        vdevs = []
-        if args.vdev_type == "stripe":
-            vdevs = [{"type": "disk", "disks": disk_list}]
-        else:
-            vdevs = [{"type": args.vdev_type, "disks": disk_list}]
+        vdev_type_key = args.vdev_type.lower()
+        try:
+            vdev_type = VDEV_TYPE_MAP[vdev_type_key]
+        except KeyError as exc:  # pragma: no cover - defensive
+            valid = ", ".join(sorted(VDEV_TYPE_MAP))
+            raise ValueError(
+                f"Unsupported vdev type '{args.vdev_type}'. Use one of: {valid}"
+            ) from exc
 
-        pool_params = {
-            "name": args.name,
-            "vdevs": vdevs,
+        if vdev_type in {"MIRROR", "RAIDZ1", "RAIDZ2", "RAIDZ3"} and len(disk_list) < 2:
+            raise ValueError(f"{vdev_type.lower()} vdev requires at least two disks.")
+
+        topology = {
+            "data": [
+                {
+                    "type": vdev_type,
+                    "disks": disk_list,
+                }
+            ]
         }
 
-        if args.encryption and args.encryption.lower() == "yes":
-            if not args.encryption_key:
-                print("Error: --encryption-key required when encryption is enabled")
-                return
-            pool_params["encryption"] = True
-            pool_params["encryption_key"] = args.encryption_key
+        pool_params: dict[str, Any] = {
+            "name": args.name,
+            "topology": topology,
+        }
 
-        print(f"Creating pool '{args.name}' with {args.vdev_type} vdev...")
+        encryption_flag = (args.encryption or "no").strip().lower()
+        if encryption_flag not in {"yes", "no"}:
+            raise ValueError("--encryption must be 'yes' or 'no'.")
+        if encryption_flag == "yes":
+            passphrase = (args.encryption_key or "").strip()
+            if not passphrase:
+                raise ValueError("--encryption-key required when encryption=yes.")
+            if len(passphrase) < 8:
+                raise ValueError(
+                    "Encryption passphrase must be at least 8 characters long."
+                )
+            pool_params["encryption"] = True
+            pool_params["encryption_options"] = {
+                "passphrase": passphrase,
+            }
+        elif args.encryption_key:
+            raise ValueError("--encryption-key can only be used when encryption=yes.")
+
+        print(f"Creating pool '{args.name}' with {vdev_type.lower()} vdev...")
         result = await client.call("pool.create", [pool_params])
 
         if args.json:
@@ -623,7 +686,8 @@ async def _cmd_pool_import(args):
     """Handle ``pool import`` using ``pool.import_find``."""
 
     async def handler(client: TrueNASClient, _args=args):
-        print(f"Searching for pool '{_args.name}'...")
+        search_label = _args.guid or _args.name
+        print(f"Searching for pool '{search_label}'...")
 
         # Find available pools to import
         available_pools = await client.call("pool.import_find", [])
@@ -633,25 +697,38 @@ async def _cmd_pool_import(args):
             return
 
         # Search for matching pool
-        matching_pool = None
+        matching_pool: dict[str, Any] | None = None
         for pool in available_pools:
-            if pool.get("name") == _args.name or (
-                _args.guid and pool.get("guid") == _args.guid
-            ):
+            pool_guid = pool.get("guid")
+            pool_name = pool.get("name")
+            if _args.guid and pool_guid == _args.guid:
                 matching_pool = pool
                 break
+            if pool_name == _args.name:
+                matching_pool = pool
+                if not _args.guid:
+                    break
 
-        if not matching_pool:
-            print(f"Pool '{_args.name}' not found")
+        if matching_pool is None:
+            print(f"Pool '{search_label}' not found")
             return
 
-        print(f"Found pool '{_args.name}' (guid: {matching_pool.get('guid')})")
+        found_name = matching_pool.get("name") or _args.name
+        print(f"Found pool '{found_name}' (guid: {matching_pool.get('guid')})")
         print("Importing pool...")
 
-        import_params = {"name": _args.name}
+        import_params: dict[str, Any] = {"guid": matching_pool["guid"]}
+        if _args.new_name:
+            import_params["name"] = _args.new_name
+
         result = await client.call("pool.import_pool", [import_params])
 
-        print(f"Pool '{_args.name}' imported successfully")
+        if _args.json:
+            print(json.dumps(result, indent=2))
+            return
+
+        target_name = _args.new_name or found_name
+        print(f"Pool '{target_name}' imported successfully")
 
     await run_command(args, handler)
 
@@ -662,12 +739,18 @@ async def _cmd_pool_export(args):
     async def handler(client: TrueNASClient):
         print(f"Exporting pool '{args.pool}'...")
 
-        export_params = {
-            "pool": args.pool,
-            "force": args.force,
-        }
+        pool = await client.get_pool(args.pool)
 
-        result = await client.call("pool.export", [export_params])
+        options: dict[str, Any] = {}
+        cascade_requested = getattr(args, "cascade", False) or args.force
+        restart_requested = getattr(args, "restart_services", False) or args.force
+
+        if cascade_requested:
+            options["cascade"] = True
+        if restart_requested:
+            options["restart_services"] = True
+
+        result = await client.call("pool.export", [pool["id"], options])
 
         if args.json:
             print(json.dumps(result, indent=2))
@@ -679,7 +762,7 @@ async def _cmd_pool_export(args):
 
 
 async def _cmd_pool_delete(args):
-    """Handle ``pool delete`` using ``pool.delete``."""
+    """Handle ``pool delete`` using ``pool.export`` with destroy option."""
 
     async def handler(client: TrueNASClient):
         if not args.force:
@@ -691,13 +774,15 @@ async def _cmd_pool_delete(args):
 
         print(f"Deleting pool '{args.pool}'...")
 
-        delete_params = {
-            "pool": args.pool,
-            "force": args.force,
-            "remove_data": args.remove_data,
-        }
+        pool = await client.get_pool(args.pool)
 
-        result = await client.call("pool.delete", [delete_params])
+        options: dict[str, Any] = {"destroy": True}
+        if args.remove_data:
+            options["cascade"] = True
+        if getattr(args, "restart_services", False):
+            options["restart_services"] = True
+
+        result = await client.call("pool.export", [pool["id"], options])
 
         if args.json:
             print(json.dumps(result, indent=2))
@@ -736,7 +821,7 @@ def _format_timestamp(value: Any) -> str:
     return str(value)
 
 
-def _scrub_pool_name(scrub: Dict[str, Any]) -> str:
+def _scrub_pool_name(scrub: dict[str, Any]) -> str:
     """Derive pool name from scrub entry."""
     direct_name = safe_get(scrub, "pool_name")
     if direct_name:
@@ -755,7 +840,7 @@ def _scrub_pool_name(scrub: Dict[str, Any]) -> str:
     return "Unknown"
 
 
-def _format_scrub_schedule(schedule: Optional[Dict[str, Any]]) -> str:
+def _format_scrub_schedule(schedule: dict[str, Any] | None) -> str:
     """Format cron-style scrub schedule."""
     if not isinstance(schedule, dict):
         return "N/A"
@@ -769,7 +854,7 @@ def _format_scrub_schedule(schedule: Optional[Dict[str, Any]]) -> str:
     return " ".join(fields)
 
 
-def _parse_cron_schedule(expr: str) -> Dict[str, str]:
+def _parse_cron_schedule(expr: str) -> dict[str, str]:
     """Parse space-separated cron schedule expression."""
     parts = expr.split()
     if len(parts) != 5:
@@ -778,12 +863,12 @@ def _parse_cron_schedule(expr: str) -> Dict[str, str]:
             "(minute hour day-of-month month day-of-week)."
         )
     keys = ["minute", "hour", "dom", "month", "dow"]
-    return {key: part for key, part in zip(keys, parts)}
+    return dict(zip(keys, parts))
 
 
-def _parse_weekday_list(value: str) -> List[int]:
+def _parse_weekday_list(value: str) -> list[int]:
     """Parse comma-separated weekday values."""
-    weekdays: List[int] = []
+    weekdays: list[int] = []
     for chunk in value.split(","):
         stripped = chunk.strip()
         if not stripped:
@@ -808,7 +893,7 @@ def _parse_time_minutes(value: str) -> int:
     return parsed.hour * 60 + parsed.minute
 
 
-def _validate_schedule_window(begin: Optional[str], end: Optional[str]) -> None:
+def _validate_schedule_window(begin: str | None, end: str | None) -> None:
     """Validate begin/end windows for schedules."""
     if not begin and not end:
         return
@@ -913,7 +998,7 @@ async def _cmd_pool_scrub_update(args: argparse.Namespace) -> None:
     """Update scrub schedule settings."""
 
     async def handler(client: TrueNASClient) -> None:
-        payload: Dict[str, Any] = {}
+        payload: dict[str, Any] = {}
 
         if args.threshold is not None:
             payload["threshold"] = args.threshold
@@ -999,7 +1084,7 @@ async def _cmd_pool_resilver_update(args: argparse.Namespace) -> None:
     """Update resilver priority configuration."""
 
     async def handler(client: TrueNASClient) -> None:
-        payload: Dict[str, Any] = {}
+        payload: dict[str, Any] = {}
 
         _validate_schedule_window(args.begin, args.end)
 
@@ -1028,7 +1113,7 @@ async def _cmd_pool_resilver_update(args: argparse.Namespace) -> None:
     await run_command(args, handler)
 
 
-def _format_snapshot_schedule(schedule: Optional[Dict[str, Any]]) -> str:
+def _format_snapshot_schedule(schedule: dict[str, Any] | None) -> str:
     """Format snapshot task schedule."""
     if not isinstance(schedule, dict):
         return "N/A"
@@ -1043,7 +1128,7 @@ def _format_snapshot_schedule(schedule: Optional[Dict[str, Any]]) -> str:
     return f"{cron}{window}"
 
 
-def _format_lifetime(value: Optional[int], unit: Optional[str]) -> str:
+def _format_lifetime(value: int | None, unit: str | None) -> str:
     """Format lifetime display."""
     if value is None or unit is None:
         return "N/A"
@@ -1051,10 +1136,10 @@ def _format_lifetime(value: Optional[int], unit: Optional[str]) -> str:
 
 
 def _build_schedule(
-    expr: Optional[str],
-    begin: Optional[str],
-    end: Optional[str],
-) -> Optional[Dict[str, str]]:
+    expr: str | None,
+    begin: str | None,
+    end: str | None,
+) -> dict[str, str] | None:
     """Construct schedule payload from CLI arguments."""
     if not expr:
         return None
@@ -1160,7 +1245,7 @@ async def _cmd_pool_snapshottask_create(args: argparse.Namespace) -> None:
         if schedule is None:
             raise ValueError("Schedule expression is required.")
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "dataset": args.dataset,
             "naming_schema": args.naming_schema,
             "lifetime_value": args.lifetime_value,
@@ -1190,7 +1275,7 @@ async def _cmd_pool_snapshottask_update(args: argparse.Namespace) -> None:
     """Update an existing periodic snapshot task."""
 
     async def handler(client: TrueNASClient) -> None:
-        payload: Dict[str, Any] = {}
+        payload: dict[str, Any] = {}
 
         if args.dataset:
             payload["dataset"] = args.dataset

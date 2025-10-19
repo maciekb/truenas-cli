@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -229,7 +230,7 @@ async def _cmd_snapshot_delete(args):
 
 
 async def _cmd_snapshot_rollback(args):
-    """Handle ``snapshot rollback`` using ``pool.dataset.snapshot_rollback``."""
+    """Handle ``snapshot rollback`` using ``pool.snapshot.rollback``."""
 
     async def handler(client: TrueNASClient):
         snapshot_name = args.snapshot
@@ -251,12 +252,15 @@ async def _cmd_snapshot_rollback(args):
 
         print(f"Rolling back to snapshot '{snapshot_name}'...")
 
-        rollback_params = {
-            "recursive": args.recursive,
-        }
+        rollback_options: dict[str, Any] = {}
+        if args.recursive:
+            rollback_options["recursive"] = True
+        if args.force:
+            rollback_options["force"] = True
 
         result = await client.call(
-            "pool.dataset.snapshot_rollback", [snapshot_name, rollback_params]
+            "pool.snapshot.rollback",
+            [snapshot_name, rollback_options],
         )
 
         if args.json:

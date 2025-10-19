@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import json
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Set, Tuple
+from typing import Any, Iterable
 
 from truenas_client import TrueNASClient
 
@@ -70,7 +70,7 @@ def _value_to_bytes(value: Any) -> int:
 
 async def _fetch_share_snapshot_context(
     client: TrueNASClient,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Set[str]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
     try:
         smb_shares = await client.get_smb_shares()
     except Exception:
@@ -79,7 +79,7 @@ async def _fetch_share_snapshot_context(
         nfs_shares = await client.get_nfs_shares()
     except Exception:
         nfs_shares = []
-    snapshots_by_dataset: Set[str] = set()
+    snapshots_by_dataset: set[str] = set()
     try:
         all_snapshots = await client.get_snapshots()
     except Exception:
@@ -97,8 +97,8 @@ async def _fetch_share_snapshot_context(
 
 def _dataset_has_share(
     mountpoint: str,
-    smb_shares: Iterable[Dict[str, Any]],
-    nfs_shares: Iterable[Dict[str, Any]],
+    smb_shares: Iterable[dict[str, Any]],
+    nfs_shares: Iterable[dict[str, Any]],
 ) -> bool:
     if not mountpoint:
         return False
@@ -124,9 +124,9 @@ def _dataset_has_share(
 
 def _collect_share_details(
     mountpoint: str,
-    smb_shares: Iterable[Dict[str, Any]],
-    nfs_shares: Iterable[Dict[str, Any]],
-) -> Dict[str, List[str]]:
+    smb_shares: Iterable[dict[str, Any]],
+    nfs_shares: Iterable[dict[str, Any]],
+) -> dict[str, list[str]]:
     details = {"smb": [], "nfs": []}
     if not mountpoint:
         return details
@@ -153,10 +153,10 @@ def _collect_share_details(
 
 
 def _is_dataset_empty(
-    dataset: Dict[str, Any],
-    smb_shares: Iterable[Dict[str, Any]],
-    nfs_shares: Iterable[Dict[str, Any]],
-    snapshots_by_dataset: Set[str],
+    dataset: dict[str, Any],
+    smb_shares: Iterable[dict[str, Any]],
+    nfs_shares: Iterable[dict[str, Any]],
+    snapshots_by_dataset: set[str],
 ) -> bool:
     name = dataset.get("name") or ""
     mountpoint = dataset.get("mountpoint") or ""
@@ -332,8 +332,6 @@ async def _cmd_dataset_list(args):
         if args.empty:
             filtered = []
             for ds in datasets:
-                name = ds.get("name") or ""
-                mountpoint = ds.get("mountpoint") or ""
                 if _is_dataset_empty(
                     ds,
                     smb_shares,
@@ -458,15 +456,14 @@ async def _cmd_dataset_create(args):
 async def _cmd_dataset_delete(args):
     async def handler(client: TrueNASClient):
         all_datasets = await client.get_datasets()
-        dataset_map_all: Dict[str, Dict[str, Any]] = {}
+        dataset_map_all: dict[str, dict[str, Any]] = {}
         for ds in all_datasets:
             name = ds.get("name")
             if isinstance(name, str):
                 dataset_map_all[name] = ds
 
-        dataset_map: Dict[str, Dict[str, Any]]
         if args.pool:
-            dataset_map: Dict[str, Dict[str, Any]] = {
+            dataset_map: dict[str, dict[str, Any]] = {
                 name: info
                 for name, info in dataset_map_all.items()
                 if info.get("pool") == args.pool
@@ -490,8 +487,8 @@ async def _cmd_dataset_delete(args):
             )
             raise SystemExit(1)
 
-        targets: List[str] = []
-        empty_dataset_map: Dict[str, Dict[str, Any]] = {}
+        targets: list[str] = []
+        empty_dataset_map: dict[str, dict[str, Any]] = {}
 
         if args.empty:
             for name, ds in dataset_map.items():
@@ -587,7 +584,7 @@ async def _cmd_dataset_delete(args):
                     "deleted. Remove the shares first or use --allow-with-shares."
                 )
 
-        final_targets: List[str] = []
+        final_targets: list[str] = []
         if args.empty:
             targets_list = list(targets)
             print(f"Empty datasets to delete ({len(targets_list)}):")
@@ -681,7 +678,7 @@ async def _cmd_dataset_delete(args):
 
 
 async def _cmd_dataset_rename(args):
-    """Handle ``dataset rename`` using ``pool.dataset.update``."""
+    """Handle ``dataset rename`` using ``pool.dataset.rename``."""
 
     async def handler(client: TrueNASClient):
         dataset_name = args.dataset
@@ -698,11 +695,11 @@ async def _cmd_dataset_rename(args):
         print(f"Renaming dataset '{dataset_name}' to '{new_name}'...")
 
         rename_params = {
-            "name": new_name,
+            "new_name": new_name,
             "recursive": args.recursive,
         }
 
-        result = await client.call("pool.dataset.update", [dataset_name, rename_params])
+        result = await client.call("pool.dataset.rename", [dataset_name, rename_params])
 
         if args.json:
             print(json.dumps(result, indent=2))

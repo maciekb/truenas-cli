@@ -11,6 +11,7 @@ from ..core import format_size, run_command
 from .base import CommandGroup
 
 DEFAULT_SHUTDOWN_REASON = "TrueNAS CLI shutdown request"
+DEFAULT_HALT_REASON = "TrueNAS CLI halt request"
 
 
 class SystemCommands(CommandGroup):
@@ -170,12 +171,17 @@ async def _cmd_system_shutdown(args):
 
 
 async def _cmd_system_halt(args):
-    """Handle ``system halt`` using ``system.halt``."""
+    """Handle ``system halt`` using ``system.shutdown`` for immediate halt."""
 
     async def handler(client: TrueNASClient):
-        force = args.force
-        print(f"Sending halt command (force={force})...")
-        result = await client.call("system.halt", [{"force": force}])
+        reason = DEFAULT_HALT_REASON
+        if args.force:
+            reason = f"{DEFAULT_HALT_REASON} (forced)"
+        print("Sending halt command (immediate shutdown)...")
+        result = await client.call(
+            "system.shutdown",
+            [reason, {"delay": None}],
+        )
 
         if args.json:
             print(json.dumps(result, indent=2))
