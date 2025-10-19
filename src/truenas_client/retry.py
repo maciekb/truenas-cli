@@ -15,7 +15,8 @@ from __future__ import annotations
 import asyncio
 import functools
 import logging
-from typing import Any, Awaitable, Callable, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 from .client import TrueNASConnectionError, TrueNASTimeoutError
 
@@ -73,12 +74,18 @@ def with_retry(
                     last_exception = e
                     if attempt == max_attempts:
                         logger.error(
-                            f"All {max_attempts} attempts failed for {func.__name__}: {e}"
+                            "All %s attempts failed for %s: %s",
+                            max_attempts,
+                            func.__name__,
+                            e,
                         )
                         raise
                     logger.warning(
-                        f"Attempt {attempt} failed for {func.__name__}: {e}. "
-                        f"Retrying in {current_delay:.1f}s..."
+                        "Attempt %s failed for %s: %s. Retrying in %.1fs...",
+                        attempt,
+                        func.__name__,
+                        e,
+                        current_delay,
                     )
                     await asyncio.sleep(current_delay)
                     current_delay *= backoff

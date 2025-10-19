@@ -125,7 +125,7 @@ class AlertsCommands(CommandGroup):
 
 
 async def _cmd_alerts_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         alerts = await client.get_alerts()
 
         if args.json:
@@ -200,7 +200,7 @@ async def _cmd_alerts_list(args: Namespace) -> None:
 async def _cmd_alerts_dismiss(args: Namespace) -> None:
     """Handle ``alerts dismiss`` using ``alert.dismiss``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         alert_id = args.alert_id
 
         print(f"Dismissing alert: {alert_id}...")

@@ -91,7 +91,7 @@ class SystemCommands(CommandGroup):
 async def _cmd_system_info(args: Namespace) -> None:
     """Handle ``system info`` using ``system.info``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         info = await client.system_info()
 
         if args.json:
@@ -116,7 +116,7 @@ async def _cmd_system_info(args: Namespace) -> None:
 async def _cmd_system_version(args: Namespace) -> None:
     """Handle ``system version`` using ``system.version``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         version_info = await client.call("system.version", [])
 
         if args.json:
@@ -136,7 +136,7 @@ async def _cmd_system_version(args: Namespace) -> None:
 async def _cmd_system_reboot(args: Namespace) -> None:
     """Handle ``system reboot`` using ``system.reboot``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         delay = args.delay
         print(f"Sending reboot command with {delay}s delay...")
         result = await client.call("system.reboot", [{"delay": delay}])
@@ -153,7 +153,7 @@ async def _cmd_system_reboot(args: Namespace) -> None:
 async def _cmd_system_shutdown(args: Namespace) -> None:
     """Handle ``system shutdown`` using ``system.shutdown``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         delay = args.delay
         reason = args.reason.strip()
         if not reason:
@@ -176,7 +176,7 @@ async def _cmd_system_shutdown(args: Namespace) -> None:
 async def _cmd_system_halt(args: Namespace) -> None:
     """Handle ``system halt`` using ``system.shutdown`` for immediate halt."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         reason = DEFAULT_HALT_REASON
         if args.force:
             reason = f"{DEFAULT_HALT_REASON} (forced)"

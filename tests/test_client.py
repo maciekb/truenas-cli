@@ -17,7 +17,7 @@ from truenas_client import (
 class TestTrueNASClient:
     """Test TrueNASClient class."""
 
-    def test_client_initialization(self):
+    def test_client_initialization(self) -> None:
         """Test client initialization with default parameters."""
         client = TrueNASClient("test.local")
 
@@ -28,7 +28,7 @@ class TestTrueNASClient:
         assert not client.is_connected
         assert not client.is_authenticated
 
-    def test_client_initialization_custom_params(self):
+    def test_client_initialization_custom_params(self) -> None:
         """Test client initialization with custom parameters."""
         client = TrueNASClient(
             "192.168.1.100", port=8443, use_ssl=False, verify_ssl=False
@@ -39,17 +39,17 @@ class TestTrueNASClient:
         assert client.use_ssl is False
         assert client.verify_ssl is False
 
-    def test_url_property_https(self):
+    def test_url_property_https(self) -> None:
         """Test URL property with HTTPS."""
         client = TrueNASClient("test.local")
         assert client.url == "wss://test.local:443/websocket"
 
-    def test_url_property_http(self):
+    def test_url_property_http(self) -> None:
         """Test URL property with HTTP."""
         client = TrueNASClient("test.local", use_ssl=False)
         assert client.url == "ws://test.local:443/websocket"
 
-    def test_url_property_custom_port(self):
+    def test_url_property_custom_port(self) -> None:
         """Test URL property with custom port."""
         client = TrueNASClient("test.local", port=8443)
         assert client.url == "wss://test.local:8443/websocket"
@@ -59,7 +59,7 @@ class TestTrueNASClient:
 class TestExceptionHierarchy:
     """Test exception hierarchy."""
 
-    def test_base_exception(self):
+    def test_base_exception(self) -> None:
         """Test TrueNASClientError is base exception."""
         from truenas_client import TrueNASClientError
 
@@ -68,7 +68,7 @@ class TestExceptionHierarchy:
         assert issubclass(TrueNASAuthenticationError, TrueNASClientError)
         assert issubclass(TrueNASNotFoundError, TrueNASClientError)
 
-    def test_exception_messages(self):
+    def test_exception_messages(self) -> None:
         """Test exception messages."""
         error = TrueNASConnectionError("Connection failed")
         assert str(error) == "Connection failed"
@@ -79,7 +79,7 @@ class TestExceptionHierarchy:
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_client_context_manager(async_mock_client):
+async def test_client_context_manager(async_mock_client: AsyncMock) -> None:
     """Test client async context manager."""
     # Test that context manager calls connect and disconnect
     async with async_mock_client:
@@ -91,7 +91,7 @@ async def test_client_context_manager(async_mock_client):
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_call_method_not_connected():
+async def test_call_method_not_connected() -> None:
     """Test calling API method when not connected raises error."""
     client = TrueNASClient("test.local")
 
@@ -100,7 +100,7 @@ async def test_call_method_not_connected():
 
 
 @pytest.mark.unit
-def test_ensure_connected_logic():
+def test_ensure_connected_logic() -> None:
     """Test ensure_connected logic exists."""
     # We're testing that the real client has these methods
     # Full integration tests will verify the actual behavior
@@ -113,7 +113,7 @@ def test_ensure_connected_logic():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_system_info(async_mock_client):
+async def test_system_info(async_mock_client: AsyncMock) -> None:
     """Test system_info method."""
     result = await async_mock_client.system_info()
 
@@ -124,7 +124,7 @@ async def test_system_info(async_mock_client):
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_get_pool_scrubs_calls_query():
+async def test_get_pool_scrubs_calls_query() -> None:
     """Test get_pool_scrubs delegates to pool.scrub.query."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=[{"id": 1}])
@@ -137,7 +137,7 @@ async def test_get_pool_scrubs_calls_query():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_run_pool_scrub_with_threshold():
+async def test_run_pool_scrub_with_threshold() -> None:
     """Test run_pool_scrub passes optional threshold."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=None)
@@ -149,7 +149,7 @@ async def test_run_pool_scrub_with_threshold():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_run_pool_scrub_without_threshold():
+async def test_run_pool_scrub_without_threshold() -> None:
     """Test run_pool_scrub omits threshold when not provided."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=None)
@@ -161,7 +161,7 @@ async def test_run_pool_scrub_without_threshold():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_login_uses_password_and_returns_result():
+async def test_login_uses_password_and_returns_result() -> None:
     """Regression: ensure password is forwarded rather than redacted."""
 
     client = TrueNASClient("test.local")
@@ -177,7 +177,7 @@ async def test_login_uses_password_and_returns_result():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_login_with_api_key_returns_server_payload():
+async def test_login_with_api_key_returns_server_payload() -> None:
     """Ensure API key login delegates correctly and exposes response payload."""
 
     client = TrueNASClient("test.local")
@@ -193,7 +193,7 @@ async def test_login_with_api_key_returns_server_payload():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_update_pool_scrub_calls_api():
+async def test_update_pool_scrub_calls_api() -> None:
     """Test update_pool_scrub forwards data."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value={"id": 3})
@@ -209,7 +209,7 @@ async def test_update_pool_scrub_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_delete_pool_scrub_calls_api():
+async def test_delete_pool_scrub_calls_api() -> None:
     """Test delete_pool_scrub forwards to API."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=True)
@@ -222,7 +222,7 @@ async def test_delete_pool_scrub_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_get_resilver_config_calls_api():
+async def test_get_resilver_config_calls_api() -> None:
     """Test get_resilver_config invokes pool.resilver.config."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value={"enabled": True})
@@ -235,7 +235,7 @@ async def test_get_resilver_config_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_update_resilver_config_calls_api():
+async def test_update_resilver_config_calls_api() -> None:
     """Test update_resilver_config forwards parameters."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value={"enabled": False})
@@ -251,7 +251,7 @@ async def test_update_resilver_config_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_get_snapshot_tasks_calls_query():
+async def test_get_snapshot_tasks_calls_query() -> None:
     """Test get_snapshot_tasks delegates to query."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=[{"id": 7}])
@@ -264,7 +264,7 @@ async def test_get_snapshot_tasks_calls_query():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_create_snapshot_task_calls_api():
+async def test_create_snapshot_task_calls_api() -> None:
     """Test create_snapshot_task forwards payload."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value={"id": 9})
@@ -281,7 +281,7 @@ async def test_create_snapshot_task_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_update_snapshot_task_calls_api():
+async def test_update_snapshot_task_calls_api() -> None:
     """Test update_snapshot_task forwards updates."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value={"id": 11})
@@ -297,7 +297,7 @@ async def test_update_snapshot_task_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_delete_snapshot_task_calls_api():
+async def test_delete_snapshot_task_calls_api() -> None:
     """Test delete_snapshot_task forwards id."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=True)
@@ -310,7 +310,7 @@ async def test_delete_snapshot_task_calls_api():
 
 @pytest.mark.unit
 @pytest.mark.anyio
-async def test_run_snapshot_task_calls_api():
+async def test_run_snapshot_task_calls_api() -> None:
     """Test run_snapshot_task forwards id."""
     client = TrueNASClient("test.local")
     client.call = AsyncMock(return_value=None)

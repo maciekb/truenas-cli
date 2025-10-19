@@ -89,7 +89,7 @@ class ServiceCommands(CommandGroup):
 
 
 async def _cmd_service_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         services = await client.get_services()
 
         if args.json:
@@ -129,7 +129,7 @@ async def _cmd_service_list(args: Namespace) -> None:
 
 
 async def _cmd_service_status(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         service = await client.get_service(args.service)
 
         if args.json:
@@ -144,7 +144,7 @@ async def _cmd_service_status(args: Namespace) -> None:
 
 
 async def _cmd_service_start(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         result = await client.start_service(args.service)
 
         if args.json:
@@ -157,7 +157,7 @@ async def _cmd_service_start(args: Namespace) -> None:
 
 
 async def _cmd_service_stop(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         result = await client.stop_service(args.service)
 
         if args.json:
@@ -170,7 +170,7 @@ async def _cmd_service_stop(args: Namespace) -> None:
 
 
 async def _cmd_service_enable(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         result = await client.enable_service(args.service)
 
         if args.json:
@@ -185,7 +185,7 @@ async def _cmd_service_enable(args: Namespace) -> None:
 async def _cmd_service_restart(args: Namespace) -> None:
     """Handle ``service restart`` using ``service.restart``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Restarting service: {args.service}...")
         result = await client.call("service.restart", [args.service])
 

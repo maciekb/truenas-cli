@@ -24,11 +24,11 @@ from typing import Optional
 from dotenv import load_dotenv
 
 from truenas_client import (
+    TrueNASAPIError,
     TrueNASClient,
     TrueNASConnectionError,
     TrueNASNotFoundError,
     TrueNASValidationError,
-    TrueNASAPIError,
 )
 from truenas_client.retry import with_retry
 
@@ -91,7 +91,6 @@ async def demonstrate_validation_errors():
 
     from truenas_cli.validation import (
         validate_pool_name,
-        validate_dataset_name,
     )
 
     # Test pool name validation
@@ -109,7 +108,6 @@ async def demonstrate_validation_errors():
         except TrueNASValidationError as e:
             result = f"✗ {e}"
 
-        expected = "✓" if should_pass else "✗"
         status = (
             "OK"
             if (should_pass and "✓" in result) or (not should_pass and "✗" in result)
@@ -131,15 +129,15 @@ async def demonstrate_not_found_errors():
 
             # Try to get a non-existent pool
             try:
-                pool = await client.get_pool("nonexistent-pool-xyz")
+                await client.get_pool("nonexistent-pool-xyz")
                 print("✗ Should have raised NotFoundError")
             except TrueNASNotFoundError as e:
                 logger.info(f"Caught not found error (expected): {e}")
-                print(f"✓ Not found error properly caught")
+                print("✓ Not found error properly caught")
 
     except TrueNASConnectionError as e:
         logger.warning(f"Could not connect for not-found test: {e}")
-        print(f"⚠ Skipping not-found test (connection unavailable)")
+        print("⚠ Skipping not-found test (connection unavailable)")
 
 
 async def demonstrate_api_errors():
@@ -155,15 +153,15 @@ async def demonstrate_api_errors():
 
             # Try an invalid API call
             try:
-                result = await client.call("invalid.method.that.does.not.exist", [])
+                await client.call("invalid.method.that.does.not.exist", [])
                 print("✗ Should have raised APIError")
             except TrueNASAPIError as e:
                 logger.info(f"Caught API error (expected): {e}")
-                print(f"✓ API error properly caught")
+                print("✓ API error properly caught")
 
     except TrueNASConnectionError as e:
         logger.warning(f"Could not connect for API error test: {e}")
-        print(f"⚠ Skipping API error test (connection unavailable)")
+        print("⚠ Skipping API error test (connection unavailable)")
 
 
 async def demonstrate_retry_logic():
@@ -187,7 +185,7 @@ async def demonstrate_retry_logic():
 
     except TrueNASConnectionError as e:
         logger.warning(f"Could not connect for retry test: {e}")
-        print(f"⚠ Skipping retry test (connection unavailable)")
+        print("⚠ Skipping retry test (connection unavailable)")
 
 
 async def demonstrate_defensive_checks():

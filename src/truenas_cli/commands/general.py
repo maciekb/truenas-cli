@@ -29,7 +29,7 @@ class GeneralCommands:
 async def _cmd_test_connection(args: Namespace) -> None:
     """Handle ``truenas-cli test`` (documentation: system.info + auth endpoints)."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print("\n=== Testing TrueNAS Connection ===")
         print(f"Host: {client.host}")
         print(f"Port: {client.port}")

@@ -1,20 +1,29 @@
 """Integration-style tests for pool snapshot task CLI commands."""
 
 import argparse
+from collections.abc import Awaitable, Callable
 from unittest.mock import AsyncMock
 
 import pytest
 
+from truenas_client import TrueNASClient
+
 
 @pytest.mark.anyio
-async def test_snapshottask_create_invokes_client(monkeypatch):
+async def test_snapshottask_create_invokes_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure create command calls client with expected payload."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
     client.create_snapshot_task.return_value = {"id": 42}
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -54,14 +63,20 @@ async def test_snapshottask_create_invokes_client(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_snapshottask_update_builds_payload(monkeypatch):
+async def test_snapshottask_update_builds_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure update command constructs payload correctly."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
     client.update_snapshot_task.return_value = {"id": 5}
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -105,13 +120,19 @@ async def test_snapshottask_update_builds_payload(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_snapshottask_delete_with_force(monkeypatch):
+async def test_snapshottask_delete_with_force(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure delete command calls client without prompting when forced."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)
@@ -128,13 +149,19 @@ async def test_snapshottask_delete_with_force(monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_snapshottask_run_invokes_client(monkeypatch):
+async def test_snapshottask_run_invokes_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Ensure run command triggers client execution."""
     from truenas_cli.commands import pool as pool_module
 
     client = AsyncMock()
 
-    async def fake_run_command(args, handler, require_auth=True):
+    async def fake_run_command(
+        args: argparse.Namespace,
+        handler: Callable[[TrueNASClient], Awaitable[None]],
+        require_auth: bool = True,
+    ) -> None:
         await handler(client)
 
     monkeypatch.setattr(pool_module, "run_command", fake_run_command)

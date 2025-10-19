@@ -35,7 +35,8 @@ import json
 import logging
 import ssl
 import time
-from typing import Any, Dict, List, Optional
+from types import TracebackType
+from typing import Any, Optional
 
 import websockets
 from websockets.client import WebSocketClientProtocol  # type: ignore[attr-defined]
@@ -276,7 +277,7 @@ class TrueNASClient:
         self._request_id += 1
         return f"req_{self._request_id}"
 
-    async def call(self, method: str, params: Optional[List[Any]] = None) -> Any:
+    async def call(self, method: str, params: Optional[list[Any]] = None) -> Any:
         """Make a JSON-RPC 2.0 method call over DDP protocol.
 
         Sends a method call request to the TrueNAS API and waits for the response.
@@ -424,7 +425,10 @@ class TrueNASClient:
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(
-                f"Authentication failed for {username}: {type(e).__name__} ({elapsed:.2f}s)"
+                "Authentication failed for %s: %s (%.2fs)",
+                username,
+                type(e).__name__,
+                elapsed,
             )
             raise
 
@@ -457,7 +461,9 @@ class TrueNASClient:
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(
-                f"API key authentication failed: {type(e).__name__} ({elapsed:.2f}s)"
+                "API key authentication failed: %s (%.2fs)",
+                type(e).__name__,
+                elapsed,
             )
             raise
 
@@ -489,7 +495,7 @@ class TrueNASClient:
 
         raise TrueNASClientError("Authentication required but no credentials provided.")
 
-    async def system_info(self) -> Dict[str, Any]:
+    async def system_info(self) -> dict[str, Any]:
         """Get system information.
 
         Returns comprehensive information about the TrueNAS system including
@@ -536,19 +542,20 @@ class TrueNASClient:
     async def query(
         self,
         resource: str,
-        filters: Optional[List] = None,
-        options: Optional[Dict] = None,
-    ) -> List[Dict]:
+        filters: Optional[list] = None,
+        options: Optional[dict] = None,
+    ) -> list[dict]:
         """Query API resources.
 
-        Generic method to query any TrueNAS API resource. This is the foundation
-        for other convenience methods.
+        Generic method to query any TrueNAS API resource. This is the
+        foundation for other convenience methods.
 
         Args:
             resource: Resource to query (e.g., 'pool', 'dataset', 'service')
-            filters: Optional query filters in format [["field", "operator", "value"], ...]
-                Common operators: "=", "!=", ">", "<", ">=", "<=", "in", "nin"
-                Example: [["name", "=", "tank"], ["status", "!=", "OFFLINE"]]
+            filters: Optional query filters in format
+                [["field", "operator", "value"], ...]. Common operators include
+                "=", "!=", ">", "<", ">=", "<=", "in", and "nin". Example:
+                [["name", "=", "tank"], ["status", "!=", "OFFLINE"]]
             options: Optional query options dictionary:
                 - limit: Max results to return (default: no limit)
                 - offset: Starting offset (default: 0)
@@ -567,7 +574,11 @@ class TrueNASClient:
             >>> # List all pools
             >>> pools = await client.query("pool")
             >>> # List specific pool
-            >>> pool = await client.query("pool", [["name", "=", "tank"]], {"get": True})
+            >>> pool = await client.query(
+            ...     "pool",
+            ...     [["name", "=", "tank"]],
+            ...     {"get": True},
+            ... )
             >>> # Get 10 datasets with offset
             >>> datasets = await client.query(
             ...     "pool.dataset",
@@ -575,7 +586,7 @@ class TrueNASClient:
             ... )
         """
         method = f"{resource}.query"
-        params: List[Any] = [filters or []]
+        params: list[Any] = [filters or []]
         if options:
             params.append(options)
         return await self.call(method, params)
@@ -586,8 +597,8 @@ class TrueNASClient:
         name: str,
         dataset_type: str = "FILESYSTEM",
         share_type: Optional[str] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """Create a new dataset.
 
         Creates a new ZFS dataset with specified properties. Datasets can be
@@ -660,7 +671,7 @@ class TrueNASClient:
 
         return await self.call("pool.dataset.create", [params])
 
-    async def get_dataset(self, dataset_id: str) -> Dict[str, Any]:
+    async def get_dataset(self, dataset_id: str) -> dict[str, Any]:
         """Get dataset information by ID.
 
         Args:
@@ -722,8 +733,13 @@ class TrueNASClient:
 
     # SMB Share operations
     async def create_smb_share(
-        self, path: str, name: str, comment: str = "", enabled: bool = True, **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        path: str,
+        name: str,
+        comment: str = "",
+        enabled: bool = True,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create SMB share
 
@@ -749,7 +765,7 @@ class TrueNASClient:
 
         return await self.call("sharing.smb.create", [params])
 
-    async def update_smb_share(self, share_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_smb_share(self, share_id: int, **kwargs: Any) -> dict[str, Any]:
         """
         Update existing SMB share
 
@@ -782,7 +798,7 @@ class TrueNASClient:
 
         return await self.call("sharing.smb.delete", [share_id])
 
-    async def get_smb_shares(self) -> List[Dict[str, Any]]:
+    async def get_smb_shares(self) -> list[dict[str, Any]]:
         """
         Get all SMB shares
 
@@ -791,7 +807,7 @@ class TrueNASClient:
         """
         return await self.query("sharing.smb")
 
-    async def get_smb_presets(self) -> Dict[str, Any]:
+    async def get_smb_presets(self) -> dict[str, Any]:
         """
         Get available SMB share presets
 
@@ -807,15 +823,16 @@ class TrueNASClient:
         preset: str,
         comment: str = "",
         enabled: bool = True,
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create SMB share using a preset
 
         Args:
             path: Full path to share (e.g., '/mnt/tank/mydata')
             name: Share name
-            preset: Preset type (e.g., 'DEFAULT_SHARE', 'PRIVATE_DATASETS', 'TIMEMACHINE')
+            preset: Preset type (e.g., 'DEFAULT_SHARE', 'PRIVATE_DATASETS',
+                'TIMEMACHINE')
             comment: Description of the share
             enabled: Enable share immediately
             **kwargs: Additional SMB share options (will override preset defaults)
@@ -849,7 +866,7 @@ class TrueNASClient:
         return await self.call("sharing.smb.create", [params])
 
     # Service operations
-    async def get_service(self, service_name: str) -> Dict[str, Any]:
+    async def get_service(self, service_name: str) -> dict[str, Any]:
         """
         Get service information
 
@@ -944,7 +961,7 @@ class TrueNASClient:
         service_id = service.get("id")
         return await self.call("service.update", [service_id, {"enable": True}])
 
-    async def ensure_smb_service_running(self) -> Dict[str, Any]:
+    async def ensure_smb_service_running(self) -> dict[str, Any]:
         """
         Ensure SMB service is running and enabled
 
@@ -963,7 +980,7 @@ class TrueNASClient:
 
         return await self.get_service("cifs")
 
-    async def ensure_nfs_service_running(self) -> Dict[str, Any]:
+    async def ensure_nfs_service_running(self) -> dict[str, Any]:
         """
         Ensure NFS service is running and enabled
 
@@ -983,7 +1000,7 @@ class TrueNASClient:
         return await self.get_service("nfs")
 
     # Pool operations
-    async def get_pools(self) -> List[Dict[str, Any]]:
+    async def get_pools(self) -> list[dict[str, Any]]:
         """Get all storage pools.
 
         Returns:
@@ -1001,7 +1018,7 @@ class TrueNASClient:
         """
         return await self.query("pool")
 
-    async def get_pool(self, pool_name: str) -> Dict[str, Any]:
+    async def get_pool(self, pool_name: str) -> dict[str, Any]:
         """Get pool information by name.
 
         Args:
@@ -1027,7 +1044,7 @@ class TrueNASClient:
             return pools[0]
         raise TrueNASNotFoundError(f"Pool '{pool_name}' not found")
 
-    async def get_pool_scrubs(self) -> List[Dict[str, Any]]:
+    async def get_pool_scrubs(self) -> list[dict[str, Any]]:
         """Get configured pool scrub tasks."""
         return await self.query("pool.scrub")
 
@@ -1038,7 +1055,7 @@ class TrueNASClient:
         threshold: Optional[int] = None,
     ) -> Any:
         """Trigger a scrub run for the given pool."""
-        params: List[Any] = [pool_name]
+        params: list[Any] = [pool_name]
         if threshold is not None:
             params.append(threshold)
         return await self.call("pool.scrub.run", params)
@@ -1047,7 +1064,7 @@ class TrueNASClient:
         self,
         scrub_id: int,
         **data: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Update scrub schedule configuration."""
         return await self.call("pool.scrub.update", [scrub_id, data])
 
@@ -1055,19 +1072,19 @@ class TrueNASClient:
         """Delete a scrub schedule."""
         return await self.call("pool.scrub.delete", [scrub_id])
 
-    async def get_resilver_config(self) -> Dict[str, Any]:
+    async def get_resilver_config(self) -> dict[str, Any]:
         """Get resilver priority configuration."""
         return await self.call("pool.resilver.config", [])
 
-    async def update_resilver_config(self, **data: Any) -> Dict[str, Any]:
+    async def update_resilver_config(self, **data: Any) -> dict[str, Any]:
         """Update resilver priority configuration."""
         return await self.call("pool.resilver.update", [data])
 
-    async def get_snapshot_tasks(self) -> List[Dict[str, Any]]:
+    async def get_snapshot_tasks(self) -> list[dict[str, Any]]:
         """Get all periodic snapshot tasks."""
         return await self.query("pool.snapshottask")
 
-    async def create_snapshot_task(self, **data: Any) -> Dict[str, Any]:
+    async def create_snapshot_task(self, **data: Any) -> dict[str, Any]:
         """Create a periodic snapshot task."""
         return await self.call("pool.snapshottask.create", [data])
 
@@ -1075,7 +1092,7 @@ class TrueNASClient:
         self,
         task_id: int,
         **data: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Update a periodic snapshot task."""
         return await self.call("pool.snapshottask.update", [task_id, data])
 
@@ -1090,14 +1107,14 @@ class TrueNASClient:
     # Dataset operations - extended
     async def get_datasets(
         self, pool_name: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get all datasets, optionally filtered by pool"""
         if pool_name:
             filters = [["pool", "=", pool_name]]
             return await self.query("pool.dataset", filters)
         return await self.query("pool.dataset")
 
-    async def get_dataset_shares(self, dataset_name: str) -> Dict[str, Any]:
+    async def get_dataset_shares(self, dataset_name: str) -> dict[str, Any]:
         """
         Get shares for a dataset (SMB and NFS)
 
@@ -1107,7 +1124,7 @@ class TrueNASClient:
         Returns:
             Dict with 'smb' and 'nfs' keys containing lists of shares
         """
-        shares: Dict[str, List[Dict[str, Any]]] = {"smb": [], "nfs": []}
+        shares: dict[str, list[dict[str, Any]]] = {"smb": [], "nfs": []}
 
         # Check SMB shares
         smb_shares = await self.get_smb_shares()
@@ -1164,16 +1181,22 @@ class TrueNASClient:
 
     # NFS Share operations
     async def create_nfs_share(
-        self, path: str, comment: str = "", **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        path: str,
+        comment: str = "",
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create NFS share
 
         Args:
             path: Local path to be exported (e.g., /mnt/pool/dataset)
-            comment: Share description (not used in NFS but kept for compatibility)
-            **kwargs: Additional NFS share options (applied after creation via update)
-                - networks: List of authorized networks (CIDR notation, default: empty = all)
+            comment: Share description (not used in NFS but kept for
+                compatibility)
+            **kwargs: Additional NFS share options (applied after creation via
+                update)
+                - networks: List of authorized networks (CIDR notation,
+                  default: empty = all)
                 - hosts: List of IP/hostnames allowed (default: empty = all)
                 - ro: Read-only flag (default: False)
                 - maproot_user: Root user mapping (default: None)
@@ -1181,7 +1204,8 @@ class TrueNASClient:
                 - mapall_user: Map all access to user (default: None)
                 - mapall_group: Map all access to group (default: None)
                 - security: Security options list (default: empty)
-                - expose_snapshots: Enable snapshot access (requires enterprise license)
+                - expose_snapshots: Enable snapshot access (requires
+                  enterprise license)
 
         Returns:
             Created NFS share information
@@ -1235,7 +1259,7 @@ class TrueNASClient:
         # Return result or empty dict
         return result if result else {}
 
-    async def get_nfs_shares(self) -> List[Dict[str, Any]]:
+    async def get_nfs_shares(self) -> list[dict[str, Any]]:
         """Get all NFS shares"""
         try:
             # Query returns a list of NFS shares
@@ -1293,19 +1317,26 @@ class TrueNASClient:
 
         return await self.call("sharing.nfs.delete", [share_id])
 
-    async def update_nfs_share(self, share_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_nfs_share(
+        self,
+        share_id: int,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """Update existing NFS share"""
         return await self.call("sharing.nfs.update", [share_id, kwargs])
 
     # Service operations - extended
-    async def get_services(self) -> List[Dict[str, Any]]:
+    async def get_services(self) -> list[dict[str, Any]]:
         """Get all services"""
         return await self.query("service")
 
     # Snapshot operations
     async def create_snapshot(
-        self, dataset_name: str, snapshot_name: str, **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        dataset_name: str,
+        snapshot_name: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create a snapshot (pool.snapshot.create)
 
@@ -1329,7 +1360,7 @@ class TrueNASClient:
 
     async def get_snapshots(
         self, dataset_name: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get snapshots, optionally filtered by dataset (pool.snapshot.query)
 
@@ -1369,11 +1400,11 @@ class TrueNASClient:
         return await self.call("pool.snapshot.delete", [snapshot_path])
 
     # Disk operations
-    async def get_disks(self) -> List[Dict[str, Any]]:
+    async def get_disks(self) -> list[dict[str, Any]]:
         """Get all disks"""
         return await self.query("disk")
 
-    async def get_disk(self, disk_name: str) -> Dict[str, Any]:
+    async def get_disk(self, disk_name: str) -> dict[str, Any]:
         """Get disk information by name"""
         disks = await self.query("disk", [["name", "=", disk_name]])
         if disks:
@@ -1382,9 +1413,9 @@ class TrueNASClient:
 
     async def get_disk_temperatures(
         self,
-        disk_names: Optional[List[str]] = None,
+        disk_names: Optional[list[str]] = None,
         include_thresholds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve disk temperatures (disk.temperatures)
 
@@ -1396,12 +1427,12 @@ class TrueNASClient:
         return await self.call("disk.temperatures", [names, include_thresholds])
 
     # Alerts
-    async def get_alerts(self) -> List[Dict[str, Any]]:
+    async def get_alerts(self) -> list[dict[str, Any]]:
         """Get all alerts"""
         return await self.call("alert.list")
 
     # App/Container operations (TrueNAS SCALE)
-    async def get_apps(self) -> List[Dict[str, Any]]:
+    async def get_apps(self) -> list[dict[str, Any]]:
         """
         Get all installed applications (app.query)
 
@@ -1415,7 +1446,7 @@ class TrueNASClient:
         """
         return await self.query("app")
 
-    async def get_app(self, app_name: str) -> Dict[str, Any]:
+    async def get_app(self, app_name: str) -> dict[str, Any]:
         """
         Get application information by name (app.get_instance)
 
@@ -1439,7 +1470,7 @@ class TrueNASClient:
                 raise TrueNASNotFoundError(f"App '{app_name}' not found") from e
             raise
 
-    async def get_available_apps(self) -> Dict[str, Any]:
+    async def get_available_apps(self) -> dict[str, Any]:
         """
         Get available applications from catalog (app.available)
 
@@ -1453,7 +1484,7 @@ class TrueNASClient:
         """
         return await self.call("app.available")
 
-    async def get_app_categories(self) -> List[str]:
+    async def get_app_categories(self) -> list[str]:
         """
         Get app categories (app.categories)
 
@@ -1486,7 +1517,7 @@ class TrueNASClient:
         """
         return await self.call("app.stop", [app_name])
 
-    async def create_app(self, values: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_app(self, values: dict[str, Any]) -> dict[str, Any]:
         """
         Create/install a new application (app.create)
 
@@ -1522,7 +1553,7 @@ class TrueNASClient:
         """
         return await self.call("app.delete", [app_name])
 
-    async def update_app(self, app_name: str, values: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_app(self, app_name: str, values: dict[str, Any]) -> dict[str, Any]:
         """
         Update application configuration (app.update)
 
@@ -1537,7 +1568,7 @@ class TrueNASClient:
 
     async def upgrade_app(
         self, app_name: str, version: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Upgrade application to a new version (app.upgrade)
 
@@ -1548,12 +1579,12 @@ class TrueNASClient:
         Returns:
             Upgraded application information
         """
-        params: List[Any] = [app_name]
+        params: list[Any] = [app_name]
         if version:
             params.append({"app_version": version})
         return await self.call("app.upgrade", params)
 
-    async def redeploy_app(self, app_name: str) -> Dict[str, Any]:
+    async def redeploy_app(self, app_name: str) -> dict[str, Any]:
         """
         Redeploy an application (app.redeploy)
 
@@ -1567,7 +1598,7 @@ class TrueNASClient:
         """
         return await self.call("app.redeploy", [app_name])
 
-    async def get_app_config(self) -> Dict[str, Any]:
+    async def get_app_config(self) -> dict[str, Any]:
         """
         Get applications configuration (app.config)
 
@@ -1577,7 +1608,7 @@ class TrueNASClient:
         return await self.call("app.config")
 
     # App image operations
-    async def get_app_images(self) -> List[Dict[str, Any]]:
+    async def get_app_images(self) -> list[dict[str, Any]]:
         """
         Get Docker images (app.image.query)
 
@@ -1613,7 +1644,7 @@ class TrueNASClient:
         return await self.call("app.image.delete", [image_id])
 
     # User operations
-    async def get_users(self) -> List[Dict[str, Any]]:
+    async def get_users(self) -> list[dict[str, Any]]:
         """
         Get all users (user.query)
 
@@ -1627,7 +1658,7 @@ class TrueNASClient:
         """
         return await self.query("user")
 
-    async def get_user(self, user_id: int) -> Dict[str, Any]:
+    async def get_user(self, user_id: int) -> dict[str, Any]:
         """
         Get user information by ID (user.get_instance)
 
@@ -1656,8 +1687,8 @@ class TrueNASClient:
         username: str,
         full_name: str,
         password: Optional[str] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create a new user (user.create)
 
@@ -1697,7 +1728,7 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("user.create", [params])
 
-    async def update_user(self, user_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_user(self, user_id: int, **kwargs: Any) -> dict[str, Any]:
         """
         Update user information (user.update)
 
@@ -1737,7 +1768,7 @@ class TrueNASClient:
         """
         return await self.call("user.set_password", [user_id, password])
 
-    async def get_shell_choices(self) -> List[str]:
+    async def get_shell_choices(self) -> list[str]:
         """
         Get available shell choices (user.shell_choices)
 
@@ -1747,7 +1778,7 @@ class TrueNASClient:
         return await self.call("user.shell_choices")
 
     # Group operations
-    async def get_groups(self) -> List[Dict[str, Any]]:
+    async def get_groups(self) -> list[dict[str, Any]]:
         """
         Get all groups (group.query)
 
@@ -1761,7 +1792,7 @@ class TrueNASClient:
         """
         return await self.query("group")
 
-    async def get_group(self, group_id: int) -> Dict[str, Any]:
+    async def get_group(self, group_id: int) -> dict[str, Any]:
         """
         Get group information by ID (group.get_instance)
 
@@ -1786,8 +1817,11 @@ class TrueNASClient:
             raise
 
     async def create_group(
-        self, name: str, gid: Optional[int] = None, **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        name: str,
+        gid: Optional[int] = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create a new group (group.create)
 
@@ -1805,7 +1839,7 @@ class TrueNASClient:
         Example:
             >>> group = await client.create_group("developers", gid=1100)
         """
-        params: Dict[str, Any] = {"name": name}
+        params: dict[str, Any] = {"name": name}
 
         if gid is not None:
             params["gid"] = gid
@@ -1813,7 +1847,7 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("group.create", [params])
 
-    async def update_group(self, group_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_group(self, group_id: int, **kwargs: Any) -> dict[str, Any]:
         """
         Update group information (group.update)
 
@@ -1842,7 +1876,7 @@ class TrueNASClient:
         return await self.call("group.delete", [group_id])
 
     # Replication operations
-    async def get_replications(self) -> List[Dict[str, Any]]:
+    async def get_replications(self) -> list[dict[str, Any]]:
         """
         Get all replication tasks (replication.query)
 
@@ -1856,7 +1890,7 @@ class TrueNASClient:
         """
         return await self.query("replication")
 
-    async def get_replication(self, task_id: int) -> Dict[str, Any]:
+    async def get_replication(self, task_id: int) -> dict[str, Any]:
         """
         Get replication task information by ID (replication.get_instance)
 
@@ -1889,10 +1923,10 @@ class TrueNASClient:
         name: str,
         direction: str,
         transport: str,
-        source_datasets: List[str],
+        source_datasets: list[str],
         target_dataset: str,
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create a new replication task (replication.create)
 
@@ -1955,7 +1989,11 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("replication.create", [params])
 
-    async def update_replication(self, task_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_replication(
+        self,
+        task_id: int,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Update replication task (replication.update)
 
@@ -2001,9 +2039,9 @@ class TrueNASClient:
         self,
         direction: str,
         transport: str,
-        source_datasets: List[str],
+        source_datasets: list[str],
         target_dataset: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """
         Run a one-time replication (not saved as a task) (replication.run_onetime)
@@ -2039,7 +2077,7 @@ class TrueNASClient:
 
     async def list_replication_datasets(
         self, transport: str = "LOCAL", ssh_credentials: Optional[int] = None
-    ) -> List[str]:
+    ) -> list[str]:
         """
         List available datasets for replication (replication.list_datasets)
 
@@ -2055,13 +2093,13 @@ class TrueNASClient:
             >>> print(datasets)
             ['tank', 'tank/data', 'tank/media']
         """
-        params: Dict[str, Any] = {"transport": transport}
+        params: dict[str, Any] = {"transport": transport}
         if ssh_credentials is not None:
             params["ssh_credentials"] = ssh_credentials
 
         return await self.call("replication.list_datasets", [params])
 
-    async def list_replication_naming_schemas(self) -> List[str]:
+    async def list_replication_naming_schemas(self) -> list[str]:
         """
         List available snapshot naming schemas (replication.list_naming_schemas)
 
@@ -2076,7 +2114,7 @@ class TrueNASClient:
         return await self.call("replication.list_naming_schemas")
 
     # CloudSync operations
-    async def get_cloudsync_tasks(self) -> List[Dict[str, Any]]:
+    async def get_cloudsync_tasks(self) -> list[dict[str, Any]]:
         """
         Get all cloud sync tasks (cloudsync.query)
 
@@ -2090,7 +2128,7 @@ class TrueNASClient:
         """
         return await self.query("cloudsync")
 
-    async def get_cloudsync_task(self, task_id: int) -> Dict[str, Any]:
+    async def get_cloudsync_task(self, task_id: int) -> dict[str, Any]:
         """
         Get cloud sync task information by ID (cloudsync.get_instance)
 
@@ -2124,9 +2162,9 @@ class TrueNASClient:
         credentials: int,
         direction: str,
         transfer_mode: str,
-        attributes: Dict[str, Any],
-        **kwargs,
-    ) -> Dict[str, Any]:
+        attributes: dict[str, Any],
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Create a new cloud sync task (cloudsync.create)
 
@@ -2178,7 +2216,11 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("cloudsync.create", [params])
 
-    async def update_cloudsync_task(self, task_id: int, **kwargs) -> Dict[str, Any]:
+    async def update_cloudsync_task(
+        self,
+        task_id: int,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Update cloud sync task (cloudsync.update)
 
@@ -2228,9 +2270,9 @@ class TrueNASClient:
         credentials: int,
         direction: str,
         transfer_mode: str,
-        attributes: Dict[str, Any],
+        attributes: dict[str, Any],
         dry_run: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """
         Run one-time cloud sync (not saved as a task) (cloudsync.sync_onetime)
@@ -2278,7 +2320,7 @@ class TrueNASClient:
         """
         return await self.call("cloudsync.abort", [task_id])
 
-    async def list_cloudsync_providers(self) -> List[Dict[str, Any]]:
+    async def list_cloudsync_providers(self) -> list[dict[str, Any]]:
         """
         List supported cloud sync providers (cloudsync.providers)
 
@@ -2293,8 +2335,11 @@ class TrueNASClient:
         return await self.call("cloudsync.providers")
 
     async def list_cloudsync_directory(
-        self, credentials: int, attributes: Dict[str, Any], **kwargs
-    ) -> List[Dict[str, Any]]:
+        self,
+        credentials: int,
+        attributes: dict[str, Any],
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         List contents of remote directory/bucket (cloudsync.list_directory)
 
@@ -2321,7 +2366,7 @@ class TrueNASClient:
         params.update(kwargs)
         return await self.call("cloudsync.list_directory", [params])
 
-    async def list_cloudsync_buckets(self, credentials: int) -> List[Dict[str, Any]]:
+    async def list_cloudsync_buckets(self, credentials: int) -> list[dict[str, Any]]:
         """
         List all buckets for given credentials (cloudsync.list_buckets)
 
@@ -2339,7 +2384,7 @@ class TrueNASClient:
         return await self.call("cloudsync.list_buckets", [credentials])
 
     # CloudSync Credentials operations
-    async def get_cloudsync_credentials(self) -> List[Dict[str, Any]]:
+    async def get_cloudsync_credentials(self) -> list[dict[str, Any]]:
         """
         Get all cloud sync credentials (cloudsync.credentials.query)
 
@@ -2353,7 +2398,7 @@ class TrueNASClient:
         """
         return await self.query("cloudsync.credentials")
 
-    async def get_cloudsync_credential(self, cred_id: int) -> Dict[str, Any]:
+    async def get_cloudsync_credential(self, cred_id: int) -> dict[str, Any]:
         """
         Get cloud sync credential by ID (cloudsync.credentials.get_instance)
 
@@ -2382,8 +2427,8 @@ class TrueNASClient:
             raise
 
     async def create_cloudsync_credential(
-        self, name: str, provider: str, attributes: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, name: str, provider: str, attributes: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create cloud sync credentials (cloudsync.credentials.create)
 
@@ -2409,8 +2454,10 @@ class TrueNASClient:
         return await self.call("cloudsync.credentials.create", [params])
 
     async def update_cloudsync_credential(
-        self, cred_id: int, **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        cred_id: int,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Update cloud sync credential (cloudsync.credentials.update)
 
@@ -2439,8 +2486,8 @@ class TrueNASClient:
         return await self.call("cloudsync.credentials.delete", [cred_id])
 
     async def verify_cloudsync_credential(
-        self, provider: str, attributes: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, provider: str, attributes: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Verify cloud sync credentials (cloudsync.credentials.verify)
 
@@ -2475,11 +2522,16 @@ class TrueNASClient:
             await self.delete_dataset(dataset_name)
         return True
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "TrueNASClient":
         """Async context manager entry"""
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Async context manager exit"""
         await self.disconnect()

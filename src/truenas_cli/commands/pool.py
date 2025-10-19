@@ -5,8 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 from argparse import Namespace
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Sequence
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -86,7 +87,10 @@ class PoolCommands(CommandGroup):
             create_parser,
             "--vdev-type",
             "vdev_type",
-            "Virtual device type: stripe, mirror, raidz, raidz2, raidz3 (default: stripe)",
+            (
+                "Virtual device type: stripe, mirror, raidz, raidz2,"
+                " raidz3 (default: stripe)"
+            ),
             default="stripe",
         )
         self.add_optional_argument(
@@ -549,7 +553,7 @@ class PoolCommands(CommandGroup):
 
 
 async def _cmd_pool_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         pools = await client.get_pools()
 
         if args.json:
@@ -596,7 +600,7 @@ async def _cmd_pool_list(args: Namespace) -> None:
 
 
 async def _cmd_pool_info(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         pool = await client.get_pool(args.pool)
 
         if args.json:
@@ -622,7 +626,7 @@ async def _cmd_pool_info(args: Namespace) -> None:
 async def _cmd_pool_create(args: Namespace) -> None:
     """Handle ``pool create`` using ``pool.create``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         disk_list = [disk.strip() for disk in args.disks.split(",") if disk.strip()]
         if not disk_list:
             raise ValueError("At least one disk must be specified for pool creation.")
@@ -686,7 +690,7 @@ async def _cmd_pool_create(args: Namespace) -> None:
 async def _cmd_pool_import(args: Namespace) -> None:
     """Handle ``pool import`` using ``pool.import_find``."""
 
-    async def handler(client: TrueNASClient, _args=args):
+    async def handler(client: TrueNASClient, _args: Namespace = args) -> None:
         search_label = _args.guid or _args.name
         print(f"Searching for pool '{search_label}'...")
 
@@ -737,7 +741,7 @@ async def _cmd_pool_import(args: Namespace) -> None:
 async def _cmd_pool_export(args: Namespace) -> None:
     """Handle ``pool export`` using ``pool.export``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Exporting pool '{args.pool}'...")
 
         pool = await client.get_pool(args.pool)
@@ -765,7 +769,7 @@ async def _cmd_pool_export(args: Namespace) -> None:
 async def _cmd_pool_delete(args: Namespace) -> None:
     """Handle ``pool delete`` using ``pool.export`` with destroy option."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         if not args.force:
             print(f"WARNING: Deleting pool '{args.pool}' will erase all data!")
             response = input("Continue? [yes/no]: ")

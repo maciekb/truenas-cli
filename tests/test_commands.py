@@ -1,5 +1,7 @@
 """Unit tests for CLI commands."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 
 from truenas_cli.commands import COMMAND_GROUPS
@@ -9,7 +11,7 @@ from truenas_cli.commands import COMMAND_GROUPS
 class TestCommandRegistration:
     """Test command group registration."""
 
-    def test_all_command_groups_registered(self):
+    def test_all_command_groups_registered(self) -> None:
         """Test that all command groups are registered."""
         assert len(COMMAND_GROUPS) > 0
 
@@ -36,7 +38,7 @@ class TestCommandRegistration:
         for expected in expected_commands:
             assert expected in registered_names, f"Command '{expected}' not registered"
 
-    def test_command_groups_have_register_method(self):
+    def test_command_groups_have_register_method(self) -> None:
         """Test that all command groups have register method."""
         for group in COMMAND_GROUPS:
             assert hasattr(group, "register"), f"Group {group} missing register method"
@@ -47,7 +49,7 @@ class TestCommandRegistration:
 class TestSystemCommands:
     """Test system command group."""
 
-    def test_system_commands_exist(self):
+    def test_system_commands_exist(self) -> None:
         """Test that system commands are registered."""
         from truenas_cli.commands.system import SystemCommands
 
@@ -55,7 +57,11 @@ class TestSystemCommands:
         assert system.name == "system"
 
     @pytest.mark.anyio
-    async def test_system_info_output(self, async_mock_client, capsys):
+    async def test_system_info_output(
+        self,
+        async_mock_client: AsyncMock,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Test system info command output."""
         # This is a basic test structure - would need actual implementation
         # to test command execution
@@ -67,7 +73,7 @@ class TestSystemCommands:
 class TestPoolCommands:
     """Test pool command group."""
 
-    def test_pool_commands_exist(self):
+    def test_pool_commands_exist(self) -> None:
         """Test that pool commands are registered."""
         from truenas_cli.commands.pool import PoolCommands
 
@@ -79,7 +85,7 @@ class TestPoolCommands:
 class TestDatasetCommands:
     """Test dataset command group."""
 
-    def test_dataset_commands_exist(self):
+    def test_dataset_commands_exist(self) -> None:
         """Test that dataset commands are registered."""
         from truenas_cli.commands.dataset import DatasetCommands
 
@@ -91,7 +97,7 @@ class TestDatasetCommands:
 class TestServiceCommands:
     """Test service command group."""
 
-    def test_service_commands_exist(self):
+    def test_service_commands_exist(self) -> None:
         """Test that service commands are registered."""
         from truenas_cli.commands.service import ServiceCommands
 
@@ -103,7 +109,7 @@ class TestServiceCommands:
 class TestSMBCommands:
     """Test SMB command group."""
 
-    def test_smb_commands_exist(self):
+    def test_smb_commands_exist(self) -> None:
         """Test that SMB commands are registered."""
         from truenas_cli.commands.smb import SMBCommands
 
@@ -115,7 +121,7 @@ class TestSMBCommands:
 class TestNFSCommands:
     """Test NFS command group."""
 
-    def test_nfs_commands_exist(self):
+    def test_nfs_commands_exist(self) -> None:
         """Test that NFS commands are registered."""
         from truenas_cli.commands.nfs import NFSCommands
 
@@ -127,7 +133,7 @@ class TestNFSCommands:
 class TestSnapshotCommands:
     """Test snapshot command group."""
 
-    def test_snapshot_commands_exist(self):
+    def test_snapshot_commands_exist(self) -> None:
         """Test that snapshot commands are registered."""
         from truenas_cli.commands.snapshot import SnapshotCommands
 
@@ -139,7 +145,7 @@ class TestSnapshotCommands:
 class TestDiskCommands:
     """Test disk command group."""
 
-    def test_disk_commands_exist(self):
+    def test_disk_commands_exist(self) -> None:
         """Test that disk commands are registered."""
         from truenas_cli.commands.disk import DiskCommands
 
@@ -151,7 +157,7 @@ class TestDiskCommands:
 class TestAlertsCommands:
     """Test alerts command group."""
 
-    def test_alerts_commands_exist(self):
+    def test_alerts_commands_exist(self) -> None:
         """Test that alerts commands are registered."""
         from truenas_cli.commands.alerts import AlertsCommands
 
@@ -163,7 +169,7 @@ class TestAlertsCommands:
 class TestAppCommands:
     """Test app command group."""
 
-    def test_app_commands_exist(self):
+    def test_app_commands_exist(self) -> None:
         """Test that app commands are registered."""
         from truenas_cli.commands.app import AppCommands
 
@@ -175,7 +181,7 @@ class TestAppCommands:
 class TestUserCommands:
     """Test user command group."""
 
-    def test_user_commands_exist(self):
+    def test_user_commands_exist(self) -> None:
         """Test that user commands are registered."""
         from truenas_cli.commands.user import UserCommands
 
@@ -187,7 +193,7 @@ class TestUserCommands:
 class TestGroupCommands:
     """Test group command group."""
 
-    def test_group_commands_exist(self):
+    def test_group_commands_exist(self) -> None:
         """Test that group commands are registered."""
         from truenas_cli.commands.group import GroupCommands
 
@@ -199,7 +205,7 @@ class TestGroupCommands:
 class TestReplicationCommands:
     """Test replication command group."""
 
-    def test_replication_commands_exist(self):
+    def test_replication_commands_exist(self) -> None:
         """Test that replication commands are registered."""
         from truenas_cli.commands.replication import ReplicationCommands
 
@@ -211,7 +217,7 @@ class TestReplicationCommands:
 class TestPoolHelperUtilities:
     """Test helper utilities used by pool commands."""
 
-    def test_parse_cron_schedule_valid(self):
+    def test_parse_cron_schedule_valid(self) -> None:
         """Ensure cron schedule parsing works."""
         from truenas_cli.commands.pool import _parse_cron_schedule
 
@@ -224,27 +230,27 @@ class TestPoolHelperUtilities:
             "dow": "*",
         }
 
-    def test_parse_cron_schedule_invalid(self):
+    def test_parse_cron_schedule_invalid(self) -> None:
         """Ensure invalid cron schedule raises error."""
         from truenas_cli.commands.pool import _parse_cron_schedule
 
         with pytest.raises(ValueError):
             _parse_cron_schedule("0 * * *")
 
-    def test_parse_weekday_list_valid(self):
+    def test_parse_weekday_list_valid(self) -> None:
         """Ensure weekday parsing returns integers."""
         from truenas_cli.commands.pool import _parse_weekday_list
 
         assert _parse_weekday_list("1,2,7") == [1, 2, 7]
 
-    def test_parse_weekday_list_invalid(self):
+    def test_parse_weekday_list_invalid(self) -> None:
         """Ensure invalid weekdays raise."""
         from truenas_cli.commands.pool import _parse_weekday_list
 
         with pytest.raises(ValueError):
             _parse_weekday_list("0,8")
 
-    def test_build_schedule_helper(self):
+    def test_build_schedule_helper(self) -> None:
         """Ensure schedule builder attaches window."""
         from truenas_cli.commands.pool import _build_schedule
 
@@ -259,14 +265,14 @@ class TestPoolHelperUtilities:
             "end": "03:00",
         }
 
-    def test_build_schedule_invalid_time(self):
+    def test_build_schedule_invalid_time(self) -> None:
         """Ensure invalid window times raise errors."""
         from truenas_cli.commands.pool import _build_schedule
 
         with pytest.raises(ValueError):
             _build_schedule("0 * * * *", "25:00", None)
 
-    def test_build_schedule_equal_window(self):
+    def test_build_schedule_equal_window(self) -> None:
         """Ensure identical begin/end times are rejected."""
         from truenas_cli.commands.pool import _build_schedule
 
@@ -278,7 +284,7 @@ class TestPoolHelperUtilities:
 class TestCloudSyncCommands:
     """Test cloudsync command group."""
 
-    def test_cloudsync_commands_exist(self):
+    def test_cloudsync_commands_exist(self) -> None:
         """Test that cloudsync commands are registered."""
         from truenas_cli.commands.cloudsync import CloudSyncCommands
 

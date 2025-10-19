@@ -1,7 +1,7 @@
 """Pytest configuration and fixtures for TrueNAS CLI tests."""
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -18,7 +18,7 @@ load_dotenv()
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> MagicMock:
     """Create a mock TrueNAS client for testing."""
     client = MagicMock(spec=TrueNASClient)
     client.is_connected = True
@@ -54,19 +54,19 @@ async def async_mock_client() -> AsyncGenerator[AsyncMock, None]:
 
 
 @pytest.fixture
-def truenas_host():
+def truenas_host() -> str:
     """Get TrueNAS host from environment for integration tests."""
     return os.getenv("TRUENAS_HOST", "truenas.local")
 
 
 @pytest.fixture
-def truenas_api_key():
+def truenas_api_key() -> str | None:
     """Get TrueNAS API key from environment for integration tests."""
     return os.getenv("TRUENAS_API_KEY")
 
 
 @pytest.fixture
-def skip_if_no_credentials(truenas_api_key):
+def skip_if_no_credentials(truenas_api_key: str | None) -> None:
     """Skip test if no TrueNAS credentials are available."""
     if not truenas_api_key:
         pytest.skip("No TrueNAS credentials available")

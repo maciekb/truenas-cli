@@ -89,7 +89,7 @@ class NFSCommands(CommandGroup):
 
 
 async def _cmd_nfs_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         shares = await client.get_nfs_shares()
 
         if args.json:
@@ -141,7 +141,7 @@ async def _cmd_nfs_list(args: Namespace) -> None:
 
 
 async def _cmd_nfs_create(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         dataset_name = f"{args.pool}/{args.dataset}"
         dataset_path = f"/mnt/{dataset_name}"
 
@@ -203,7 +203,7 @@ async def _cmd_nfs_create(args: Namespace) -> None:
 
 
 async def _cmd_nfs_delete(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         share_ids = list(args.ids)
 
         if not args.force:

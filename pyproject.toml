@@ -48,7 +48,7 @@ missing-attribute = "ignore"
 [tool.ruff]
 # Configure Ruff to use the maximum line length of 88 characters
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 # Exclude common non-code directories
 exclude = [
     ".git",
@@ -84,7 +84,7 @@ bad-argument-type = "ignore"
 
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ["py39"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(

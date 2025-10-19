@@ -126,7 +126,7 @@ class SnapshotCommands(CommandGroup):
 
 
 async def _cmd_snapshot_list(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         snapshots = await client.get_snapshots(args.dataset if args.dataset else None)
 
         if args.json:
@@ -164,7 +164,7 @@ async def _cmd_snapshot_list(args: Namespace) -> None:
 
 
 async def _cmd_snapshot_create(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         payload = {
             "dataset_name": args.dataset,
             "snapshot_name": args.name,
@@ -184,7 +184,7 @@ async def _cmd_snapshot_create(args: Namespace) -> None:
 
 
 async def _cmd_snapshot_delete(args: Namespace) -> None:
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         snapshots = list(args.snapshots)
 
         if not args.force:
@@ -233,12 +233,13 @@ async def _cmd_snapshot_delete(args: Namespace) -> None:
 async def _cmd_snapshot_rollback(args: Namespace) -> None:
     """Handle ``snapshot rollback`` using ``pool.snapshot.rollback``."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         snapshot_name = args.snapshot
 
         if "@" not in snapshot_name:
             print(
-                "Error: Invalid snapshot path. Use format: dataset@snapshot (e.g., tank/data@daily)"
+                "Error: Invalid snapshot path. Use format: dataset@snapshot "
+                "(e.g., tank/data@daily)"
             )
             return
 

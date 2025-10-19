@@ -678,7 +678,9 @@ async def _cmd_cloudsync_creds_create(args: argparse.Namespace) -> None:
 
         cred_id = cred.get("id", "N/A")
         print(
-            f"✓ Cloud sync credentials '{args.name}' created successfully (ID {cred_id})"
+            "✓ Cloud sync credentials "
+            f"'{args.name}' created successfully "
+            f"(ID {cred_id})"
         )
 
     await run_command(args, handler)
@@ -696,7 +698,8 @@ async def _cmd_cloudsync_creds_delete(args: argparse.Namespace) -> None:
             payload: dict[str, Any] = {"success": bool(result)}
             if not result:
                 payload["error"] = (
-                    "TrueNAS did not confirm removal. Verify the credential is not in use."
+                    "TrueNAS did not confirm removal. "
+                    "Verify the credential is not in use."
                 )
             print(json.dumps(payload, indent=2))
             if not result:
