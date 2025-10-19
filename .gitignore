@@ -22,3 +22,4 @@ build/
 .api/
 .claude/
 uv.lock
+*.md
