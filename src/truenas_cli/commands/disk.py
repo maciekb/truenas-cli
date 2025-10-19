@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from truenas_client import TrueNASClient
 
@@ -178,7 +178,11 @@ class DiskCommands(CommandGroup):
 async def _cmd_disk_list(args):
     async def handler(client: TrueNASClient):
         disks = await client.get_disks()
-        disk_names = [disk.get("name") for disk in disks if disk.get("name")]
+        disk_names: List[str] = []
+        for disk in disks:
+            name = disk.get("name")
+            if isinstance(name, str):
+                disk_names.append(name)
 
         temperatures: Dict[str, Any] = {}
         if disk_names:

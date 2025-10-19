@@ -48,6 +48,15 @@ logger = logging.getLogger(__name__)
 client: Optional[TrueNASClient] = None
 
 
+def _require_api_key() -> str:
+    """Return configured API key or raise informative error."""
+    if TRUENAS_API_KEY is None:
+        raise RuntimeError(
+            "TRUENAS_API_KEY must be set to exercise connection examples."
+        )
+    return TRUENAS_API_KEY
+
+
 @with_retry(max_attempts=3, delay=1.0)
 async def get_system_info_with_retry():
     """Get system info with automatic retry on transient failures."""
@@ -116,7 +125,7 @@ async def demonstrate_not_found_errors():
             host=TRUENAS_HOST,
             verify_ssl=not TRUENAS_INSECURE
         ) as client:
-            await client.login_with_api_key(TRUENAS_API_KEY)
+            await client.login_with_api_key(_require_api_key())
 
             # Try to get a non-existent pool
             try:
@@ -141,7 +150,7 @@ async def demonstrate_api_errors():
             host=TRUENAS_HOST,
             verify_ssl=not TRUENAS_INSECURE
         ) as client:
-            await client.login_with_api_key(TRUENAS_API_KEY)
+            await client.login_with_api_key(_require_api_key())
 
             # Try an invalid API call
             try:
@@ -166,7 +175,7 @@ async def demonstrate_retry_logic():
             host=TRUENAS_HOST,
             verify_ssl=not TRUENAS_INSECURE
         ) as client:
-            await client.login_with_api_key(TRUENAS_API_KEY)
+            await client.login_with_api_key(_require_api_key())
 
             logger.info("Calling system_info with retry logic...")
             info = await get_system_info_with_retry()
@@ -191,7 +200,7 @@ async def demonstrate_defensive_checks():
             host=TRUENAS_HOST,
             verify_ssl=not TRUENAS_INSECURE
         ) as client:
-            await client.login_with_api_key(TRUENAS_API_KEY)
+            await client.login_with_api_key(_require_api_key())
 
             # Query is defensive - validates response type
             pools = await client.query("pool")

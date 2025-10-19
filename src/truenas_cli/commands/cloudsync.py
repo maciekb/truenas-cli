@@ -206,12 +206,15 @@ class CloudSyncCommands(CommandGroup):
         )
 
         # Credentials subcommands
-        creds_parser = self.add_command(
-            subparsers,
+        parents = [parent_parser] if parent_parser else []
+        creds_parser = subparsers.add_parser(
             "creds",
-            "Cloud sync credentials operations",
-            None,  # No handler, just grouping
-            parent_parser=parent_parser,
+            help="Cloud sync credentials operations",
+            parents=parents,
+        )
+        creds_parser.set_defaults(
+            func=_cmd_cloudsync_creds_root,
+            _creds_parser=creds_parser,
         )
         creds_subparsers = creds_parser.add_subparsers(dest="creds_command")
 
@@ -298,6 +301,15 @@ class CloudSyncCommands(CommandGroup):
             "attributes",
             "Provider attributes as JSON string",
         )
+
+
+async def _cmd_cloudsync_creds_root(args: argparse.Namespace) -> None:
+    """Handle ``cloudsync creds`` root command by showing help."""
+    parser = getattr(args, "_creds_parser", None)
+    if isinstance(parser, argparse.ArgumentParser):
+        parser.print_help()
+        return
+    print("Specify a credentials subcommand. Use --help for available options.")
 
 
 async def _cmd_cloudsync_list(args: argparse.Namespace) -> None:

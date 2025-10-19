@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import json
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Set, Tuple
 
 from truenas_client import TrueNASClient
 
@@ -70,7 +70,7 @@ def _value_to_bytes(value: Any) -> int:
 
 async def _fetch_share_snapshot_context(
     client: TrueNASClient,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], set]:
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Set[str]]:
     try:
         smb_shares = await client.get_smb_shares()
     except Exception:
@@ -79,7 +79,7 @@ async def _fetch_share_snapshot_context(
         nfs_shares = await client.get_nfs_shares()
     except Exception:
         nfs_shares = []
-    snapshots_by_dataset = set()
+    snapshots_by_dataset: Set[str] = set()
     try:
         all_snapshots = await client.get_snapshots()
     except Exception:
@@ -156,7 +156,7 @@ def _is_dataset_empty(
     dataset: Dict[str, Any],
     smb_shares: Iterable[Dict[str, Any]],
     nfs_shares: Iterable[Dict[str, Any]],
-    snapshots_by_dataset: set,
+    snapshots_by_dataset: Set[str],
 ) -> bool:
     name = dataset.get("name") or ""
     mountpoint = dataset.get("mountpoint") or ""
@@ -346,11 +346,12 @@ async def _cmd_dataset_list(args):
 
         for ds in datasets:
             ds_name = ds.get("name")
-            ds_mountpoint = ds.get("mountpoint")
+            mountpoint_value = ds.get("mountpoint")
+            ds_mountpoint = mountpoint_value if isinstance(mountpoint_value, str) else ""
 
             print(f"\nDataset: {ds_name}")
             print(f"  Type: {ds.get('type')}")
-            print(f"  Mountpoint: {ds_mountpoint}")
+            print(f"  Mountpoint: {ds_mountpoint or 'N/A'}")
             creation = ds.get("creation", {}).get("parsed")
             if creation:
                 timestamp = (
@@ -447,13 +448,17 @@ async def _cmd_dataset_create(args):
 async def _cmd_dataset_delete(args):
     async def handler(client: TrueNASClient):
         all_datasets = await client.get_datasets()
-        dataset_map_all = {ds.get("name"): ds for ds in all_datasets if ds.get("name")}
+        dataset_map_all: Dict[str, Dict[str, Any]] = {}
+        for ds in all_datasets:
+            name = ds.get("name")
+            if isinstance(name, str):
+                dataset_map_all[name] = ds
 
         if args.pool:
-            dataset_map = {
-                name: ds
-                for name, ds in dataset_map_all.items()
-                if ds.get("pool") == args.pool
+            dataset_map: Dict[str, Dict[str, Any]] = {
+                name: info
+                for name, info in dataset_map_all.items()
+                if info.get("pool") == args.pool
             }
         else:
             dataset_map = dict(dataset_map_all)
@@ -543,8 +548,12 @@ async def _cmd_dataset_delete(args):
             ds = dataset_map.get(name) or dataset_map_all.get(name)
             if not ds:
                 continue
+            mountpoint_value = ds.get("mountpoint")
+            mountpoint = (
+                mountpoint_value if isinstance(mountpoint_value, str) else ""
+            )
             details = _collect_share_details(
-                ds.get("mountpoint"),
+                mountpoint,
                 smb_shares,
                 nfs_shares,
             )

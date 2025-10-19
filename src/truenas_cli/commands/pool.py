@@ -272,36 +272,36 @@ async def _cmd_pool_create(args):
 async def _cmd_pool_import(args):
     """Handle ``pool import`` using ``pool.import_find``."""
 
-    async def handler(client: TrueNASClient):
-        print(f"Searching for pool '{args.name}'...")
+    async def handler(client: TrueNASClient, _args=args):
+        print(f"Searching for pool '{_args.name}'...")
 
         # Find available pools to import
         available_pools = await client.call("pool.import_find", [])
 
-        if args.json:
+        if _args.json:
             print(json.dumps(available_pools, indent=2))
             return
 
         # Search for matching pool
         matching_pool = None
         for pool in available_pools:
-            if pool.get("name") == args.name or (
-                args.guid and pool.get("guid") == args.guid
+            if pool.get("name") == _args.name or (
+                _args.guid and pool.get("guid") == _args.guid
             ):
                 matching_pool = pool
                 break
 
         if not matching_pool:
-            print(f"Pool '{args.name}' not found")
+            print(f"Pool '{_args.name}' not found")
             return
 
-        print(f"Found pool '{args.name}' (guid: {matching_pool.get('guid')})")
+        print(f"Found pool '{_args.name}' (guid: {matching_pool.get('guid')})")
         print("Importing pool...")
 
-        import_params = {"name": args.name}
+        import_params = {"name": _args.name}
         result = await client.call("pool.import_pool", [import_params])
 
-        print(f"Pool '{args.name}' imported successfully")
+        print(f"Pool '{_args.name}' imported successfully")
 
     await run_command(args, handler)
 
