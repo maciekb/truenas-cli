@@ -124,10 +124,10 @@ class GroupCommands(CommandGroup):
         )
 
 
-async def _cmd_group_list(args):
+async def _cmd_group_list(args: argparse.Namespace) -> None:
     """Handle ``group list`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         groups = await client.get_groups()
 
         if args.json:
@@ -167,10 +167,10 @@ async def _cmd_group_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_group_info(args):
+async def _cmd_group_info(args: argparse.Namespace) -> None:
     """Handle ``group info`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         group = await client.get_group(args.group_id)
 
         if args.json:
@@ -220,10 +220,10 @@ async def _cmd_group_info(args):
     await run_command(args, handler)
 
 
-async def _cmd_group_create(args):
+async def _cmd_group_create(args: argparse.Namespace) -> None:
     """Handle ``group create`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         kwargs = {}
 
         if args.smb:
@@ -243,21 +243,22 @@ async def _cmd_group_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_group_update(args):
+async def _cmd_group_update(args: argparse.Namespace) -> None:
     """Handle ``group update`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         kwargs = {}
 
         if args.name:
             kwargs["name"] = args.name
 
         if args.smb is not None:
-            kwargs["smb"] = args.smb.lower() in ("true", "yes", "1")
+            # Safe type checking before calling .lower()
+            smb_value = str(args.smb) if args.smb is not None else ""
+            kwargs["smb"] = smb_value.lower() in ("true", "yes", "1")
 
         if not kwargs:
-            print("Error: No update parameters provided")
-            return
+            raise ValueError("No update parameters provided")
 
         print(f"Updating group ID {args.group_id}...")
 
@@ -272,10 +273,10 @@ async def _cmd_group_update(args):
     await run_command(args, handler)
 
 
-async def _cmd_group_delete(args):
+async def _cmd_group_delete(args: argparse.Namespace) -> None:
     """Handle ``group delete`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Deleting group ID {args.group_id}...")
 
         result = await client.delete_group(args.group_id)

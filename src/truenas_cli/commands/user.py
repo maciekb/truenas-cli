@@ -162,10 +162,10 @@ class UserCommands(CommandGroup):
         )
 
 
-async def _cmd_user_list(args):
+async def _cmd_user_list(args: argparse.Namespace) -> None:
     """Handle ``user list`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         users = await client.get_users()
 
         if args.json:
@@ -197,17 +197,17 @@ async def _cmd_user_list(args):
                 if user.get("group"):
                     print(f"  Primary Group: {user['group']['bsdgrp_group']}")
                 if user.get("groups"):
-                    group_names = [g for g in user["groups"]]
+                    group_names = list(user["groups"])
                     if group_names:
                         print(f"  Groups: {', '.join(map(str, group_names))}")
 
     await run_command(args, handler)
 
 
-async def _cmd_user_info(args):
+async def _cmd_user_info(args: argparse.Namespace) -> None:
     """Handle ``user info`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         user = await client.get_user(args.user_id)
 
         if args.json:
@@ -254,21 +254,48 @@ async def _cmd_user_info(args):
     await run_command(args, handler)
 
 
-async def _cmd_user_create(args):
+async def _cmd_user_create(args: argparse.Namespace) -> None:
     """Handle ``user create`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
+        # Input validation
+        if not args.username or not args.username.strip():
+            raise ValueError("Username cannot be empty")
+
+        if not args.full_name or not args.full_name.strip():
+            raise ValueError("Full name cannot be empty")
+
+        # Validate username format (alphanumeric, dash, underscore)
+        import re
+
+        if not re.match(r"^[a-z_][a-z0-9_-]*$", args.username):
+            raise ValueError(
+                "Username must start with lowercase letter or underscore, "
+                "and contain only lowercase letters, digits, dashes, and underscores"
+            )
+
         kwargs = {}
 
         if args.uid is not None:
+            if args.uid < 0:
+                raise ValueError("UID must be non-negative")
             kwargs["uid"] = args.uid
+
         if args.group is not None:
+            if args.group < 0:
+                raise ValueError("Group ID must be non-negative")
             kwargs["group"] = args.group
+
         if args.home:
             kwargs["home"] = args.home
+
         if args.shell:
             kwargs["shell"] = args.shell
+
         if args.email:
+            # Basic email validation
+            if "@" not in args.email or "." not in args.email:
+                raise ValueError("Invalid email format")
             kwargs["email"] = args.email
 
         print(f"Creating user: {args.username}...")
@@ -287,10 +314,10 @@ async def _cmd_user_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_user_delete(args):
+async def _cmd_user_delete(args: argparse.Namespace) -> None:
     """Handle ``user delete`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Deleting user ID {args.user_id}...")
 
         result = await client.delete_user(args.user_id, args.delete_group)
@@ -306,10 +333,10 @@ async def _cmd_user_delete(args):
     await run_command(args, handler)
 
 
-async def _cmd_user_set_password(args):
+async def _cmd_user_set_password(args: argparse.Namespace) -> None:
     """Handle ``user set-password`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Setting password for user ID {args.user_id}...")
 
         result = await client.set_user_password(args.user_id, args.password)
@@ -323,10 +350,10 @@ async def _cmd_user_set_password(args):
     await run_command(args, handler)
 
 
-async def _cmd_user_shells(args):
+async def _cmd_user_shells(args: argparse.Namespace) -> None:
     """Handle ``user shells`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         shells = await client.get_shell_choices()
 
         if args.json:

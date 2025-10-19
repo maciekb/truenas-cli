@@ -172,10 +172,10 @@ class AppCommands(CommandGroup):
         )
 
 
-async def _cmd_app_list(args):
+async def _cmd_app_list(args: argparse.Namespace) -> None:
     """Handle ``app list`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         apps = await client.get_apps()
 
         if args.json:
@@ -192,13 +192,13 @@ async def _cmd_app_list(args):
             state = app.get("state", "UNKNOWN")
             version = app.get("version", "N/A")
 
-            # State emoji
+            # State indicator (terminal-safe)
             state_icon = {
-                "RUNNING": "🟢",
-                "STOPPED": "⏸️ ",
-                "DEPLOYING": "🔄",
-                "CRASHED": "🔴",
-            }.get(state, "❓")
+                "RUNNING": "[✓]",
+                "STOPPED": "[■]",
+                "DEPLOYING": "[...]",
+                "CRASHED": "[✗]",
+            }.get(state, "[?]")
 
             print(f"\n{state_icon} {name}")
             print(f"  State: {state}")
@@ -221,10 +221,10 @@ async def _cmd_app_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_info(args):
+async def _cmd_app_info(args: argparse.Namespace) -> None:
     """Handle ``app info`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         app = await client.get_app(args.app_name)
 
         if args.json:
@@ -277,10 +277,10 @@ async def _cmd_app_info(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_available(args):
+async def _cmd_app_available(args: argparse.Namespace) -> None:
     """Handle ``app available`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         available = await client.get_available_apps()
 
         if args.json:
@@ -316,10 +316,10 @@ async def _cmd_app_available(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_categories(args):
+async def _cmd_app_categories(args: argparse.Namespace) -> None:
     """Handle ``app categories`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         categories = await client.get_app_categories()
 
         if args.json:
@@ -333,10 +333,10 @@ async def _cmd_app_categories(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_start(args):
+async def _cmd_app_start(args: argparse.Namespace) -> None:
     """Handle ``app start`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Starting application: {args.app_name}...")
 
         result = await client.start_app(args.app_name)
@@ -350,10 +350,10 @@ async def _cmd_app_start(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_stop(args):
+async def _cmd_app_stop(args: argparse.Namespace) -> None:
     """Handle ``app stop`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Stopping application: {args.app_name}...")
 
         result = await client.stop_app(args.app_name)
@@ -367,10 +367,10 @@ async def _cmd_app_stop(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_delete(args):
+async def _cmd_app_delete(args: argparse.Namespace) -> None:
     """Handle ``app delete`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Deleting application: {args.app_name}...")
 
         result = await client.delete_app(args.app_name)
@@ -384,10 +384,10 @@ async def _cmd_app_delete(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_redeploy(args):
+async def _cmd_app_redeploy(args: argparse.Namespace) -> None:
     """Handle ``app redeploy`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         print(f"Redeploying application: {args.app_name}...")
 
         result = await client.redeploy_app(args.app_name)
@@ -401,10 +401,10 @@ async def _cmd_app_redeploy(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_upgrade(args):
+async def _cmd_app_upgrade(args: argparse.Namespace) -> None:
     """Handle ``app upgrade`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         version_str = f" to {args.version}" if args.version else " to latest"
         print(f"Upgrading application: {args.app_name}{version_str}...")
 
@@ -419,10 +419,10 @@ async def _cmd_app_upgrade(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_config(args):
+async def _cmd_app_config(args: argparse.Namespace) -> None:
     """Handle ``app config`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         config = await client.get_app_config()
 
         if args.json:
@@ -438,10 +438,10 @@ async def _cmd_app_config(args):
     await run_command(args, handler)
 
 
-async def _cmd_app_images(args):
+async def _cmd_app_images(args: argparse.Namespace) -> None:
     """Handle ``app images`` command."""
 
-    async def handler(client: TrueNASClient):
+    async def handler(client: TrueNASClient) -> None:
         images = await client.get_app_images()
 
         if args.json:
@@ -455,11 +455,18 @@ async def _cmd_app_images(args):
 
         for image in images:
             repo_tags = image.get("repo_tags", [])
-            image_id = image.get("id", "N/A")[:12]  # Short ID
+            image_id = image.get("id", "N/A")
+            # Safe string slicing with length check
+            if isinstance(image_id, str) and len(image_id) > 12:
+                image_id = image_id[:12]
+
             size = image.get("size", 0)
 
-            # Format size
-            size_mb = size / (1024 * 1024)
+            # Format size with type validation
+            if not isinstance(size, (int, float)):
+                size = 0
+
+            size_mb = size / (1024 * 1024) if size > 0 else 0
             size_str = (
                 f"{size_mb:.1f} MB" if size_mb < 1024 else f"{size_mb / 1024:.1f} GB"
             )
@@ -470,7 +477,7 @@ async def _cmd_app_images(args):
                     print(f"  ID: {image_id}")
                     print(f"  Size: {size_str}")
             else:
-                print(f"\n<none>:<none>")
+                print("\n<none>:<none>")
                 print(f"  ID: {image_id}")
                 print(f"  Size: {size_str}")
 
