@@ -259,6 +259,20 @@ class TestPoolHelperUtilities:
             "end": "03:00",
         }
 
+    def test_build_schedule_invalid_time(self):
+        """Ensure invalid window times raise errors."""
+        from truenas_cli.commands.pool import _build_schedule
+
+        with pytest.raises(ValueError):
+            _build_schedule("0 * * * *", "25:00", None)
+
+    def test_build_schedule_equal_window(self):
+        """Ensure identical begin/end times are rejected."""
+        from truenas_cli.commands.pool import _build_schedule
+
+        with pytest.raises(ValueError):
+            _build_schedule("0 * * * *", "12:00", "12:00")
+
 
 @pytest.mark.unit
 class TestCloudSyncCommands:

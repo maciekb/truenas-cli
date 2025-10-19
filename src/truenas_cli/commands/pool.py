@@ -793,6 +793,27 @@ def _parse_weekday_list(value: str) -> List[int]:
     return weekdays
 
 
+def _parse_time_minutes(value: str) -> int:
+    """Convert HH:MM (24h) string to minutes since 00:00."""
+    if value == "24:00":
+        return 24 * 60
+    try:
+        parsed = datetime.strptime(value, "%H:%M")
+    except ValueError as exc:
+        raise ValueError(f"Invalid time '{value}' (expected HH:MM)") from exc
+    return parsed.hour * 60 + parsed.minute
+
+
+def _validate_schedule_window(begin: Optional[str], end: Optional[str]) -> None:
+    """Validate begin/end windows for schedules."""
+    if not begin and not end:
+        return
+    begin_minutes = _parse_time_minutes(begin or "00:00")
+    end_minutes = _parse_time_minutes(end or "24:00")
+    if begin_minutes == end_minutes:
+        raise ValueError("Begin and end window must not be equal.")
+
+
 async def _cmd_pool_scrub_root(args: argparse.Namespace) -> None:
     """Handle ``pool scrub`` root without subcommand."""
 
@@ -976,6 +997,8 @@ async def _cmd_pool_resilver_update(args: argparse.Namespace) -> None:
     async def handler(client: TrueNASClient) -> None:
         payload: Dict[str, Any] = {}
 
+        _validate_schedule_window(args.begin, args.end)
+
         if args.begin:
             payload["begin"] = args.begin
         if args.end:
@@ -1032,6 +1055,7 @@ def _build_schedule(
     if not expr:
         return None
     schedule = _parse_cron_schedule(expr)
+    _validate_schedule_window(begin, end)
     if begin:
         schedule["begin"] = begin
     if end:
