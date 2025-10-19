@@ -44,7 +44,6 @@ from __future__ import annotations
 import logging
 import logging.handlers
 import sys
-from typing import Optional
 
 # Log format strings
 _SIMPLE_FORMAT = "%(levelname)s: %(message)s"
@@ -91,7 +90,7 @@ def get_logger(name: str) -> logging.Logger:
 def configure_logging(
     verbose: int = 0,
     quiet: bool = False,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
 ) -> None:
     """Configure logging for the CLI.
 

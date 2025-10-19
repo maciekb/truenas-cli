@@ -290,7 +290,11 @@ async def _cmd_app_available(args: argparse.Namespace) -> None:
         print("\n=== Available Applications ===")
 
         if isinstance(available, dict):
-            total = sum(len(apps_dict) for apps_dict in available.values() if isinstance(apps_dict, dict))
+            total = sum(
+                len(apps_dict)
+                for apps_dict in available.values()
+                if isinstance(apps_dict, dict)
+            )
             print(f"Total available: {total}")
 
             for train, apps_dict in sorted(available.items()):
@@ -302,7 +306,11 @@ async def _cmd_app_available(args: argparse.Namespace) -> None:
                 for app_name, app_data in sorted(apps_dict.items()):
                     if not isinstance(app_data, dict):
                         continue
-                    latest = app_data.get("latest_version") or app_data.get("version") or "N/A"
+                    latest = (
+                        app_data.get("latest_version")
+                        or app_data.get("version")
+                        or "N/A"
+                    )
                     description = app_data.get("description") or ""
                     if isinstance(description, str) and len(description) > 60:
                         description = description[:57] + "..."
@@ -317,9 +325,24 @@ async def _cmd_app_available(args: argparse.Namespace) -> None:
                 if not isinstance(entry, dict):
                     print(f"\n- {entry}")
                     continue
-                train = entry.get("train") or entry.get("catalog") or entry.get("branch") or "unknown"
-                name = entry.get("name") or entry.get("app") or entry.get("chart_name") or "unknown"
-                latest = entry.get("latest_version") or entry.get("version") or entry.get("app_version") or "N/A"
+                train = (
+                    entry.get("train")
+                    or entry.get("catalog")
+                    or entry.get("branch")
+                    or "unknown"
+                )
+                name = (
+                    entry.get("name")
+                    or entry.get("app")
+                    or entry.get("chart_name")
+                    or "unknown"
+                )
+                latest = (
+                    entry.get("latest_version")
+                    or entry.get("version")
+                    or entry.get("app_version")
+                    or "N/A"
+                )
                 description = entry.get("description") or entry.get("notes") or ""
                 if isinstance(description, str) and len(description) > 60:
                     description = description[:57] + "..."

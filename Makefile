@@ -9,8 +9,8 @@ help:
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint             Run linters (ruff)"
-	@echo "  make format           Format code (black, isort)"
-	@echo "  make type-check       Run type checker (mypy)"
+	@echo "  make format           Format code (ruff formatter)"
+	@echo "  make type-check       Run type checker (pyrefly)"
 	@echo "  make format-check     Check formatting without modifying"
 	@echo ""
 	@echo "Testing:"
@@ -23,33 +23,31 @@ help:
 	@echo ""
 
 install:
-	pip install -e .
+	uv sync
 
 install-dev:
-	pip install -e ".[dev]"
+	uv sync --group dev
 
 lint:
-	ruff check src tests
+	uv run ruff check src tests
 
 format:
-	black src tests
-	isort src tests
+	uv run ruff format src tests
 
 format-check:
-	black --check src tests
-	isort --check-only src tests
+	uv run ruff format src tests --check
 
 type-check:
-	mypy src
+	uv run pyrefly check
 
 test:
-	pytest --cov=src --cov-report=term-missing tests
+	uv run pytest --cov=src --cov-report=term-missing tests
 
 test-fast:
-	pytest tests
+	uv run pytest tests
 
 test-watch:
-	pytest --looponfail tests
+	uv run pytest --looponfail tests
 
 qa: lint format-check type-check
 	@echo "All quality checks passed!"

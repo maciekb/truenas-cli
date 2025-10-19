@@ -161,6 +161,38 @@ async def test_run_pool_scrub_without_threshold():
 
 @pytest.mark.unit
 @pytest.mark.anyio
+async def test_login_uses_password_and_returns_result():
+    """Regression: ensure password is forwarded rather than redacted."""
+
+    client = TrueNASClient("test.local")
+    client.ensure_connected = AsyncMock()
+    client.call = AsyncMock(return_value={"session": "abc"})
+
+    result = await client.login("root", "secret")
+
+    client.ensure_connected.assert_awaited_once()
+    client.call.assert_awaited_once_with("auth.login", ["root", "secret"])
+    assert result == {"session": "abc"}
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+async def test_login_with_api_key_returns_server_payload():
+    """Ensure API key login delegates correctly and exposes response payload."""
+
+    client = TrueNASClient("test.local")
+    client.ensure_connected = AsyncMock()
+    client.call = AsyncMock(return_value={"token": "xyz"})
+
+    result = await client.login_with_api_key("apikey")
+
+    client.ensure_connected.assert_awaited_once()
+    client.call.assert_awaited_once_with("auth.login_with_api_key", ["apikey"])
+    assert result == {"token": "xyz"}
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
 async def test_update_pool_scrub_calls_api():
     """Test update_pool_scrub forwards data."""
     client = TrueNASClient("test.local")

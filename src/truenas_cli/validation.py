@@ -20,10 +20,10 @@ Validation Categories:
 
 from __future__ import annotations
 
-import re
 import json
+import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from truenas_client import TrueNASValidationError
 
@@ -170,9 +170,9 @@ def validate_path(path: str) -> None:
 
 def validate_response_dict(
     response: Any,
-    expected_keys: Optional[List[str]] = None,
+    expected_keys: list[str] | None = None,
     context: str = "API response",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Validate that response is a dictionary with expected keys.
 
     Args:
@@ -212,7 +212,7 @@ def validate_response_dict(
 def validate_response_list(
     response: Any,
     context: str = "API response",
-) -> List[Any]:
+) -> list[Any]:
     """Validate that response is a list.
 
     Args:
@@ -234,7 +234,7 @@ def validate_response_list(
 
 
 def validate_required_arg(
-    value: Optional[str],
+    value: str | None,
     arg_name: str,
 ) -> str:
     """Validate that a required argument was provided.
@@ -257,7 +257,7 @@ def validate_required_arg(
 
 def validate_choice(
     value: str,
-    choices: List[str],
+    choices: list[str],
     arg_name: str,
 ) -> str:
     """Validate that value is one of allowed choices.
@@ -283,10 +283,10 @@ def validate_choice(
 
 
 def validate_positive_int(
-    value: Optional[int],
+    value: int | None,
     arg_name: str,
     allow_none: bool = False,
-) -> Optional[int]:
+) -> int | None:
     """Validate that value is a positive integer.
 
     Args:

@@ -394,7 +394,7 @@ class TrueNASClient:
             )
             raise
 
-    async def login(self, username: str, password: str) -> None:
+    async def login(self, username: str, password: str) -> Any:
         """Authenticate with username and password.
 
         Connects to the server if not already connected, then authenticates
@@ -416,7 +416,7 @@ class TrueNASClient:
         start_time = time.time()
         try:
             await self.ensure_connected()
-            result = await self.call("auth.login", [username, "[REDACTED]"])
+            result = await self.call("auth.login", [username, password])
             self._authenticated = True
             elapsed = time.time() - start_time
             logger.info(f"Successfully authenticated as {username} ({elapsed:.2f}s)")
@@ -428,7 +428,7 @@ class TrueNASClient:
             )
             raise
 
-    async def login_with_api_key(self, api_key: str) -> None:
+    async def login_with_api_key(self, api_key: str) -> Any:
         """Authenticate using an API key.
 
         Preferred authentication method over username/password.
@@ -461,7 +461,7 @@ class TrueNASClient:
             )
             raise
 
-    async def ensure_connected(self):
+    async def ensure_connected(self) -> None:
         """Ensure the client is connected before performing operations."""
         if not self.is_connected:
             await self.connect()
@@ -472,10 +472,8 @@ class TrueNASClient:
         api_key: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-    ):
-        """
-        Ensure the client is authenticated. Follows API priority: API key first, then user credentials.
-        """
+    ) -> None:
+        """Ensure authentication is established respecting credential precedence."""
         await self.ensure_connected()
 
         if self.is_authenticated:

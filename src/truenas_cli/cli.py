@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from argparse import Namespace
 
 from .commands import COMMAND_GROUPS  # Lazy imports avoided for clarity
 
@@ -85,7 +86,7 @@ Environment Variables:
     return parser
 
 
-def _ensure_subcommand(args, parser: argparse.ArgumentParser) -> None:
+def _ensure_subcommand(args: Namespace, parser: argparse.ArgumentParser) -> None:
     """Validate that a subcommand was provided."""
     if not getattr(args, "command", None):
         parser.print_help()
@@ -99,7 +100,7 @@ def _ensure_subcommand(args, parser: argparse.ArgumentParser) -> None:
             raise SystemExit(0)
 
 
-def execute_from_args(parser: argparse.ArgumentParser, args) -> None:
+def execute_from_args(parser: argparse.ArgumentParser, args: Namespace) -> None:
     """Execute the CLI based on parsed arguments."""
     _ensure_subcommand(args, parser)
 

@@ -55,13 +55,15 @@ Examples:
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import logging
 import os
 import sys
-from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable
+
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from truenas_client import (
     TrueNASAPIError,
@@ -78,16 +80,27 @@ from .logging_config import configure_logging
 CommandHandler = Callable[[TrueNASClient], Awaitable[None]]
 
 
-@dataclass(frozen=True)
-class Credentials:
+class Credentials(BaseModel):
     """Container for resolved credential sources."""
 
-    api_key: Optional[str]
-    username: Optional[str]
-    password: Optional[str]
+    api_key: str | None = Field(default=None)
+    username: str | None = Field(default=None)
+    password: str | None = Field(default=None)
+
+    @field_validator("api_key", "username", "password")
+    @classmethod
+    def strip_empty_strings(cls, value: str | None) -> str | None:
+        """Normalise empty string values to ``None``."""
+
+        if value is not None:
+            stripped = value.strip()
+            if not stripped:
+                return None
+            return stripped
+        return value
 
 
-def resolve_credentials(args: Any) -> Credentials:
+def resolve_credentials(args: argparse.Namespace) -> Credentials:
     """Gather credentials from CLI arguments or environment variables.
 
     Resolves authentication credentials with precedence:
@@ -113,14 +126,17 @@ def resolve_credentials(args: Any) -> Credentials:
         >>> if credentials.api_key:
         ...     print("Using API key auth")
     """
-    return Credentials(
-        api_key=getattr(args, "api_key", None) or os.getenv("TRUENAS_API_KEY"),
-        username=getattr(args, "username", None) or os.getenv("TRUENAS_USERNAME"),
-        password=getattr(args, "password", None) or os.getenv("TRUENAS_PASSWORD"),
-    )
+    try:
+        return Credentials(
+            api_key=(getattr(args, "api_key", None) or os.getenv("TRUENAS_API_KEY")),
+            username=(getattr(args, "username", None) or os.getenv("TRUENAS_USERNAME")),
+            password=(getattr(args, "password", None) or os.getenv("TRUENAS_PASSWORD")),
+        )
+    except ValidationError as exc:  # pragma: no cover - defensive path
+        raise TrueNASClientError(f"Invalid credential configuration: {exc}") from exc
 
 
-async def authenticate_client(client: TrueNASClient, args: Any) -> None:
+async def authenticate_client(client: TrueNASClient, args: argparse.Namespace) -> None:
     """Authenticate client with API key or username/password.
 
     Resolves credentials from CLI args or environment variables and
@@ -152,7 +168,7 @@ async def authenticate_client(client: TrueNASClient, args: Any) -> None:
     )
 
 
-def get_client_from_args(args) -> TrueNASClient:
+def get_client_from_args(args: argparse.Namespace) -> TrueNASClient:
     """Create TrueNAS client from command line arguments.
 
     Resolves connection parameters from CLI args or environment variables.
@@ -203,7 +219,7 @@ def get_client_from_args(args) -> TrueNASClient:
 
 
 async def run_command(
-    args,
+    args: argparse.Namespace,
     handler: CommandHandler,
     *,
     require_auth: bool = True,

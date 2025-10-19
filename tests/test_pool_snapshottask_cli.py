@@ -1,7 +1,6 @@
 """Integration-style tests for pool snapshot task CLI commands."""
 
 import argparse
-from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest

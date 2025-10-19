@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from argparse import Namespace
 
 from truenas_client import TrueNASClient
 
@@ -111,7 +112,7 @@ class SMBCommands(CommandGroup):
         )
 
 
-async def _cmd_smb_list_presets(args):
+async def _cmd_smb_list_presets(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         presets = await client.get_smb_presets()
 
@@ -129,7 +130,7 @@ async def _cmd_smb_list_presets(args):
     await run_command(args, handler)
 
 
-async def _cmd_smb_list_shares(args):
+async def _cmd_smb_list_shares(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         shares = await client.get_smb_shares()
 
@@ -173,7 +174,7 @@ async def _cmd_smb_list_shares(args):
     await run_command(args, handler)
 
 
-async def _cmd_smb_create(args):
+async def _cmd_smb_create(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         full_dataset_name = f"{args.pool}/{args.dataset}"
         dataset_mount_path = f"/mnt/{full_dataset_name}"
@@ -241,7 +242,7 @@ async def _cmd_smb_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_smb_delete(args):
+async def _cmd_smb_delete(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         share_ids = list(args.ids)
 

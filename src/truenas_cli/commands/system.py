@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
+from argparse import Namespace
 
 from truenas_client import TrueNASClient
 
 from ..core import format_size, run_command
+from ..langchain_support import render_system_summary
 from .base import CommandGroup
 
 DEFAULT_SHUTDOWN_REASON = "TrueNAS CLI shutdown request"
@@ -86,7 +88,7 @@ class SystemCommands(CommandGroup):
         halt_parser.set_defaults(func=_cmd_system_halt)
 
 
-async def _cmd_system_info(args):
+async def _cmd_system_info(args: Namespace) -> None:
     """Handle ``system info`` using ``system.info``."""
 
     async def handler(client: TrueNASClient):
@@ -106,11 +108,12 @@ async def _cmd_system_info(args):
             print(f"Memory: {format_size(physmem)}")
         print(f"Uptime: {info.get('uptime')}")
         print(f"Timezone: {info.get('timezone')}")
+        print(f"Summary: {render_system_summary(info)}")
 
     await run_command(args, handler)
 
 
-async def _cmd_system_version(args):
+async def _cmd_system_version(args: Namespace) -> None:
     """Handle ``system version`` using ``system.version``."""
 
     async def handler(client: TrueNASClient):
@@ -130,7 +133,7 @@ async def _cmd_system_version(args):
     await run_command(args, handler)
 
 
-async def _cmd_system_reboot(args):
+async def _cmd_system_reboot(args: Namespace) -> None:
     """Handle ``system reboot`` using ``system.reboot``."""
 
     async def handler(client: TrueNASClient):
@@ -147,7 +150,7 @@ async def _cmd_system_reboot(args):
     await run_command(args, handler)
 
 
-async def _cmd_system_shutdown(args):
+async def _cmd_system_shutdown(args: Namespace) -> None:
     """Handle ``system shutdown`` using ``system.shutdown``."""
 
     async def handler(client: TrueNASClient):
@@ -170,7 +173,7 @@ async def _cmd_system_shutdown(args):
     await run_command(args, handler)
 
 
-async def _cmd_system_halt(args):
+async def _cmd_system_halt(args: Namespace) -> None:
     """Handle ``system halt`` using ``system.shutdown`` for immediate halt."""
 
     async def handler(client: TrueNASClient):

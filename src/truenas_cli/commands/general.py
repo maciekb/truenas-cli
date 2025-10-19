@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import argparse
+from argparse import Namespace
+
 from truenas_client import TrueNASClient, TrueNASClientError
 
 from ..core import authenticate_client, run_command
@@ -10,7 +13,11 @@ class GeneralCommands:
 
     name = "general"
 
-    def register(self, subparsers, parent_parser):
+    def register(
+        self,
+        subparsers: argparse._SubParsersAction,
+        parent_parser: argparse.ArgumentParser,
+    ) -> None:
         parser = subparsers.add_parser(
             "test",
             help="Test connection to TrueNAS",
@@ -19,7 +26,7 @@ class GeneralCommands:
         parser.set_defaults(func=_cmd_test_connection)
 
 
-async def _cmd_test_connection(args):
+async def _cmd_test_connection(args: Namespace) -> None:
     """Handle ``truenas-cli test`` (documentation: system.info + auth endpoints)."""
 
     async def handler(client: TrueNASClient):

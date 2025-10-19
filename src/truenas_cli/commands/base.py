@@ -70,7 +70,7 @@ from __future__ import annotations
 
 import argparse
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 class CommandGroup(ABC):
@@ -161,8 +161,8 @@ class CommandGroup(ABC):
         name: str,
         help_text: str,
         handler: Callable,
-        arguments: Optional[list] = None,
-        parent_parser: Optional[argparse.ArgumentParser] = None,
+        arguments: list | None = None,
+        parent_parser: argparse.ArgumentParser | None = None,
     ) -> argparse.ArgumentParser:
         """Add a subcommand with optional arguments.
 
@@ -247,7 +247,9 @@ class CommandGroup(ABC):
             try:
                 option_strings = list(flags)
             except TypeError as exc:  # pragma: no cover - defensive
-                raise TypeError("flags must be a string or iterable of strings") from exc
+                raise TypeError(
+                    "flags must be a string or iterable of strings"
+                ) from exc
             option_strings = [str(item) for item in option_strings]
         if not option_strings:
             raise ValueError("flags iterable must contain at least one flag")

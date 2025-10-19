@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from argparse import Namespace
 from typing import Any
 
 from truenas_client import TrueNASClient
@@ -124,7 +125,7 @@ class SnapshotCommands(CommandGroup):
         )
 
 
-async def _cmd_snapshot_list(args):
+async def _cmd_snapshot_list(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         snapshots = await client.get_snapshots(args.dataset if args.dataset else None)
 
@@ -162,7 +163,7 @@ async def _cmd_snapshot_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_snapshot_create(args):
+async def _cmd_snapshot_create(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         payload = {
             "dataset_name": args.dataset,
@@ -182,7 +183,7 @@ async def _cmd_snapshot_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_snapshot_delete(args):
+async def _cmd_snapshot_delete(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         snapshots = list(args.snapshots)
 
@@ -229,7 +230,7 @@ async def _cmd_snapshot_delete(args):
     await run_command(args, handler)
 
 
-async def _cmd_snapshot_rollback(args):
+async def _cmd_snapshot_rollback(args: Namespace) -> None:
     """Handle ``snapshot rollback`` using ``pool.snapshot.rollback``."""
 
     async def handler(client: TrueNASClient):

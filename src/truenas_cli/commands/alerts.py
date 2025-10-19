@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from argparse import Namespace
 from datetime import datetime
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -10,7 +12,7 @@ from ..core import run_command
 from .base import CommandGroup
 
 
-def _extract_alert_timestamp(alert):
+def _extract_alert_timestamp(alert: dict[str, Any]) -> datetime | None:
     """Extract alert creation timestamp as datetime object."""
     # Try common datetime field names
     for field in ["datetime", "created", "timestamp", "date"]:
@@ -44,7 +46,7 @@ def _extract_alert_timestamp(alert):
     return None
 
 
-def _format_alert_datetime(alert):
+def _format_alert_datetime(alert: dict[str, Any]) -> str:
     """Extract and format alert creation datetime as string."""
     dt = _extract_alert_timestamp(alert)
     if dt:
@@ -52,7 +54,7 @@ def _format_alert_datetime(alert):
     return "N/A"
 
 
-def _format_alert_duration(alert):
+def _format_alert_duration(alert: dict[str, Any]) -> str:
     """Calculate and format how long alert has been active."""
     dt = _extract_alert_timestamp(alert)
     if not dt:
@@ -122,7 +124,7 @@ class AlertsCommands(CommandGroup):
         )
 
 
-async def _cmd_alerts_list(args):
+async def _cmd_alerts_list(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         alerts = await client.get_alerts()
 
@@ -195,7 +197,7 @@ async def _cmd_alerts_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_alerts_dismiss(args):
+async def _cmd_alerts_dismiss(args: Namespace) -> None:
     """Handle ``alerts dismiss`` using ``alert.dismiss``."""
 
     async def handler(client: TrueNASClient):

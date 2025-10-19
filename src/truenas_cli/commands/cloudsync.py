@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-
-from typing import Any, Dict
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -694,7 +693,7 @@ async def _cmd_cloudsync_creds_delete(args: argparse.Namespace) -> None:
         result = await client.delete_cloudsync_credential(args.cred_id)
 
         if args.json:
-            payload: Dict[str, Any] = {"success": bool(result)}
+            payload: dict[str, Any] = {"success": bool(result)}
             if not result:
                 payload["error"] = (
                     "TrueNAS did not confirm removal. Verify the credential is not in use."

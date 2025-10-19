@@ -7,7 +7,7 @@ name = "truenas-client"
 version = "0.1.0"
 description = "TrueNAS API Client using WebSocket and JSON-RPC 2.0"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
     {name = "TrueNAS Community"},
@@ -25,20 +25,21 @@ classifiers = [
 dependencies = [
     "websockets>=12.0",
     "python-dotenv>=1.0.0",
+    "pydantic>=2.7.0",
+    "langchain>=0.1.17,<0.2.0",
 ]
 
 [[tool.pyrefly.sub-config]]
 matches = "truenas_cli/commands/base"
 
+
 [project.optional-dependencies]
 dev = [
     "ruff>=0.1.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "mypy>=1.0.0",
     "pytest>=7.0.0",
     "anyio[trio]>=4.0.0",
     "pytest-cov>=4.0.0",
+    "pyrefly>=0.37.0",
 ]
 
 [tool.pyrefly.sub-config.errors]
@@ -137,7 +138,7 @@ ignore_missing_imports = true
 [tool.pyrefly]
 search-path = ["src"]
 python-version = "3.9.0"
-ignore-missing-imports = ["websockets.*"]
+ignore-missing-imports = ["websockets.*", "pytest", "pytest.*"]
 
 [tool.pyrefly.sub-config.errors]
 missing-attribute = "ignore"
@@ -188,6 +189,10 @@ markers = [
 dev = [
     "bs4>=0.0.2",
     "pyrefly>=0.37.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "anyio[trio]>=4.0.0",
+    "ruff>=0.1.0",
     "setuptools>=75.3.2",
 ]
 # Use anyio for async tests (as per CLAUDE.md guidelines)

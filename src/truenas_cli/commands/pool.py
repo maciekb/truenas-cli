@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from argparse import Namespace
 from datetime import datetime
 from typing import Any, Sequence
 
@@ -547,7 +548,7 @@ class PoolCommands(CommandGroup):
         )
 
 
-async def _cmd_pool_list(args):
+async def _cmd_pool_list(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         pools = await client.get_pools()
 
@@ -594,7 +595,7 @@ async def _cmd_pool_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_pool_info(args):
+async def _cmd_pool_info(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         pool = await client.get_pool(args.pool)
 
@@ -618,7 +619,7 @@ async def _cmd_pool_info(args):
     await run_command(args, handler)
 
 
-async def _cmd_pool_create(args):
+async def _cmd_pool_create(args: Namespace) -> None:
     """Handle ``pool create`` using ``pool.create``."""
 
     async def handler(client: TrueNASClient):
@@ -682,7 +683,7 @@ async def _cmd_pool_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_pool_import(args):
+async def _cmd_pool_import(args: Namespace) -> None:
     """Handle ``pool import`` using ``pool.import_find``."""
 
     async def handler(client: TrueNASClient, _args=args):
@@ -733,7 +734,7 @@ async def _cmd_pool_import(args):
     await run_command(args, handler)
 
 
-async def _cmd_pool_export(args):
+async def _cmd_pool_export(args: Namespace) -> None:
     """Handle ``pool export`` using ``pool.export``."""
 
     async def handler(client: TrueNASClient):
@@ -761,7 +762,7 @@ async def _cmd_pool_export(args):
     await run_command(args, handler)
 
 
-async def _cmd_pool_delete(args):
+async def _cmd_pool_delete(args: Namespace) -> None:
     """Handle ``pool delete`` using ``pool.export`` with destroy option."""
 
     async def handler(client: TrueNASClient):

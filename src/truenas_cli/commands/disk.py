@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Any, Dict, List, Optional
+from argparse import Namespace
+from typing import Any
 
 from truenas_client import TrueNASClient
 
@@ -10,7 +11,7 @@ from ..core import format_size, run_command
 from .base import CommandGroup
 
 
-def _extract_temperature(value: Any) -> Optional[float]:
+def _extract_temperature(value: Any) -> float | None:
     """Parse a temperature value (possibly within a dict) into Celsius."""
 
     if isinstance(value, dict):
@@ -33,7 +34,7 @@ def _extract_temperature(value: Any) -> Optional[float]:
     return None
 
 
-def _format_temperature(disk: Dict[str, Any], temperature_entry: Optional[Any]) -> str:
+def _format_temperature(disk: dict[str, Any], temperature_entry: Any | None) -> str:
     """Resolve temperature from disk.temperatures mapping or disk fields."""
 
     temp = None
@@ -73,8 +74,8 @@ def _format_temperature(disk: Dict[str, Any], temperature_entry: Optional[Any]) 
 
 
 def _derive_status(
-    disk: Dict[str, Any],
-    temperature_entry: Optional[Any],
+    disk: dict[str, Any],
+    temperature_entry: Any | None,
 ) -> str:
     """Derive a user-friendly status using documented disk fields."""
 
@@ -161,16 +162,16 @@ class DiskCommands(CommandGroup):
         health_parser.add_argument("disk", help="Disk name (e.g., sda)")
 
 
-async def _cmd_disk_list(args):
+async def _cmd_disk_list(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         disks = await client.get_disks()
-        disk_names: List[str] = []
+        disk_names: list[str] = []
         for disk in disks:
             name = disk.get("name")
             if isinstance(name, str):
                 disk_names.append(name)
 
-        temperatures: Dict[str, Any] = {}
+        temperatures: dict[str, Any] = {}
         if disk_names:
             try:
                 temperatures = await client.get_disk_temperatures(
@@ -216,7 +217,7 @@ async def _cmd_disk_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_disk_health(args):
+async def _cmd_disk_health(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         disk = await client.get_disk(args.disk)
         temp_mapping = {}

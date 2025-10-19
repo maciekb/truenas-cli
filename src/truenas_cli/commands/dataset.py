@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+from argparse import Namespace
 from datetime import datetime
 from typing import Any, Iterable
 
@@ -289,7 +290,10 @@ class DatasetCommands(CommandGroup):
             action="store_true",
         )
         self.add_optional_argument(
-            delete_parser, ["-p", "--pool"], "pool", "Restrict deletion to datasets in this pool"
+            delete_parser,
+            ["-p", "--pool"],
+            "pool",
+            "Restrict deletion to datasets in this pool",
         )
 
         # Rename dataset
@@ -319,7 +323,7 @@ class DatasetCommands(CommandGroup):
         )
 
 
-async def _cmd_dataset_list(args):
+async def _cmd_dataset_list(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         datasets = await client.get_datasets(args.pool if args.pool else None)
 
@@ -425,7 +429,7 @@ async def _cmd_dataset_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_dataset_create(args):
+async def _cmd_dataset_create(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         dataset_name = f"{args.pool}/{args.dataset}"
 
@@ -453,7 +457,7 @@ async def _cmd_dataset_create(args):
     await run_command(args, handler)
 
 
-async def _cmd_dataset_delete(args):
+async def _cmd_dataset_delete(args: Namespace) -> None:
     async def handler(client: TrueNASClient):
         all_datasets = await client.get_datasets()
         dataset_map_all: dict[str, dict[str, Any]] = {}
@@ -677,7 +681,7 @@ async def _cmd_dataset_delete(args):
     await run_command(args, handler)
 
 
-async def _cmd_dataset_rename(args):
+async def _cmd_dataset_rename(args: Namespace) -> None:
     """Handle ``dataset rename`` using ``pool.dataset.rename``."""
 
     async def handler(client: TrueNASClient):
