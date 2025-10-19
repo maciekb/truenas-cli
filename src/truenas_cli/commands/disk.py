@@ -160,20 +160,6 @@ class DiskCommands(CommandGroup):
         )
         health_parser.add_argument("disk", help="Disk name (e.g., sda)")
 
-        # Temperatures
-        temps_parser = self.add_command(
-            subparsers,
-            "temperatures",
-            "Show raw disk temperatures (disk.temperatures)",
-            _cmd_disk_temperatures,
-            parent_parser=parent_parser,
-        )
-        temps_parser.add_argument(
-            "disks",
-            nargs="*",
-            help="Optional list of disk names (default: all)",
-        )
-
 
 async def _cmd_disk_list(args):
     async def handler(client: TrueNASClient):
@@ -255,13 +241,3 @@ async def _cmd_disk_health(args):
 
     await run_command(args, handler)
 
-
-async def _cmd_disk_temperatures(args):
-    async def handler(client: TrueNASClient):
-        names = args.disks if args.disks else None
-        temps = await client.get_disk_temperatures(names, include_thresholds=True)
-
-        # Always emit raw output by default for easier inspection.
-        print(json.dumps(temps, indent=2))
-
-    await run_command(args, handler)

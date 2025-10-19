@@ -24,7 +24,7 @@ Simple introduction to using the TrueNAS client library.
 ```bash
 export TRUENAS_HOST=truenas.local
 export TRUENAS_API_KEY=your-api-key
-python examples/basic_usage.py
+uv run python examples/basic_usage.py
 ```
 
 **Expected output:**
@@ -69,13 +69,13 @@ Comprehensive error handling patterns with specific exception types and recovery
 
 **Run it:**
 ```bash
-python examples/error_handling.py
+uv run python examples/error_handling.py
 ```
 
 Or with API key for full tests:
 ```bash
 export TRUENAS_API_KEY=your-key
-python examples/error_handling.py
+uv run python examples/error_handling.py
 ```
 
 **Output includes:**
@@ -116,10 +116,10 @@ Demonstration of structured logging with multiple verbosity levels and automatic
 ```bash
 # Show different logging levels
 export TRUENAS_API_KEY=your-key
-python examples/logging_example.py 2>&1 | less
+uv run python examples/logging_example.py 2>&1 | less
 
 # Direct error output to capture logs
-python examples/logging_example.py 2> debug.log
+uv run python examples/logging_example.py 2> debug.log
 ```
 
 **Log output example (DEBUG level):**

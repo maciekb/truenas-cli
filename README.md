@@ -19,18 +19,23 @@ A modern, feature-rich command-line interface for TrueNAS SCALE API v25.10+
 git clone https://github.com/yourusername/truenas-cli.git
 cd truenas-cli
 
-# Install using uv (recommended)
+# Create a virtual environment managed by uv
 uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install -e .
 
-# Install development dependencies
-uv pip install -e ".[dev]"
+# Install project (and development) dependencies
+uv sync --group dev
 ```
 
 ### Configuration
 
-Create a `.env` file with your TrueNAS credentials:
+Start from the provided template:
+
+```bash
+cp config/.env.example .env
+```
+
+Then set your TrueNAS credentials:
 
 ```bash
 TRUENAS_HOST=192.168.1.100
@@ -42,39 +47,39 @@ TRUENAS_INSECURE=false
 Or use command-line arguments:
 
 ```bash
-./truenas-cli.py -H truenas.local -k your-api-key [command]
+uv run python truenas-cli.py -H truenas.local -k your-api-key [command]
 ```
 
 ### Basic Usage
 
 ```bash
 # Test connection
-./truenas-cli.py test
+uv run python truenas-cli.py test
 
 # Get system information
-./truenas-cli.py system info
+uv run python truenas-cli.py system info
 
 # List pools
-./truenas-cli.py pool list
+uv run python truenas-cli.py pool list
 
 # List datasets
-./truenas-cli.py dataset list
+uv run python truenas-cli.py dataset list
 
 # Create SMB share
-./truenas-cli.py smb create --pool tank --dataset data --share Media
+uv run python truenas-cli.py smb create --pool tank --dataset data --share Media
 
 # List snapshots
-./truenas-cli.py snapshot list
+uv run python truenas-cli.py snapshot list
 
 # Check alerts
-./truenas-cli.py alerts list
+uv run python truenas-cli.py alerts list
 
 # List applications (TrueNAS SCALE)
-./truenas-cli.py app list
+uv run python truenas-cli.py app list
 
 # Start/stop applications
-./truenas-cli.py app start plex
-./truenas-cli.py app stop plex
+uv run python truenas-cli.py app start plex
+uv run python truenas-cli.py app stop plex
 ```
 
 ## Available Commands
@@ -115,16 +120,15 @@ Or use command-line arguments:
 - `snapshot delete` - Delete snapshot
 - `snapshot rollback` - Rollback to snapshot
 
+### Disks
+- `disk list` - List all disks
+- `disk health <disk>` - Show disk health details
+
 ### Services
 - `service list` - List all services
 - `service start <name>` - Start a service
 - `service stop <name>` - Stop a service
 - `service restart <name>` - Restart a service
-
-### Disks
-- `disk list` - List all disks
-- `disk info <disk>` - Get disk details
-- `disk temperature` - Show disk temperatures
 
 ### Alerts
 - `alerts list` - List active alerts
@@ -192,7 +196,7 @@ Or use command-line arguments:
 All commands support `--json` flag for machine-readable output:
 
 ```bash
-./truenas-cli.py pool list --json | jq '.[] | {name, status}'
+uv run python truenas-cli.py pool list --json | jq '.[] | {name, status}'
 ```
 
 ### Dry Run Mode
@@ -200,7 +204,7 @@ All commands support `--json` flag for machine-readable output:
 Preview changes without applying them:
 
 ```bash
-./truenas-cli.py dataset create tank/test --dry-run
+uv run python truenas-cli.py dataset create tank/test --dry-run
 ```
 
 ### Verbose Logging
@@ -208,7 +212,7 @@ Preview changes without applying them:
 Use `-v` for INFO level, `-vv` for DEBUG level:
 
 ```bash
-./truenas-cli.py -vv pool list
+uv run python truenas-cli.py -vv pool list
 ```
 
 ## Development
@@ -241,8 +245,11 @@ uv run ruff check .
 # Fix linting issues
 uv run ruff check . --fix
 
+# Initialize pyrefly (first run)
+uv run pyrefly init
+
 # Type checking
-pyrefly check
+uv run pyrefly check
 ```
 
 ### Project Structure
@@ -307,7 +314,7 @@ Generate an API key in TrueNAS WebUI:
 ### Username/Password
 
 ```bash
-./truenas-cli.py -u root -P password [command]
+uv run python truenas-cli.py -u root -P password [command]
 ```
 
 ## Contributing
@@ -335,13 +342,13 @@ See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
 
 ```bash
 # Self-signed certificate
-./truenas-cli.py --insecure test
+uv run python truenas-cli.py --insecure test
 
 # Custom port
-./truenas-cli.py --port 8443 test
+uv run python truenas-cli.py --port 8443 test
 
 # Disable SSL
-./truenas-cli.py --no-ssl --port 80 test
+uv run python truenas-cli.py --no-ssl --port 80 test
 ```
 
 ### Authentication Errors
