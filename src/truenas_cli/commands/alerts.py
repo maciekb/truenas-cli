@@ -112,7 +112,7 @@ class AlertsCommands(CommandGroup):
             subparsers,
             "dismiss",
             "Dismiss an alert (alert.dismiss)",
-            _cmd_alerts_list,
+            _cmd_alerts_dismiss,
             parent_parser=parent_parser,
         )
         self.add_required_argument(
@@ -195,8 +195,8 @@ async def _cmd_alerts_list(args):
     await run_command(args, handler)
 
 
-async def _cmd_alerts_acknowledge(args):
-    """Handle ``alerts ack`` using ``alert.dismiss``."""
+async def _cmd_alerts_dismiss(args):
+    """Handle ``alerts dismiss`` using ``alert.dismiss``."""
 
     async def handler(client: TrueNASClient):
         alert_id = args.alert_id

@@ -262,12 +262,15 @@ class TrueNASClient:
 
     async def disconnect(self) -> None:
         """Close WebSocket connection"""
-        if self.ws:
-            await self.ws.close()
-            self.ws = None
-            self._authenticated = False
-            self._session_id = None
-            logger.info("Disconnected from TrueNAS")
+        ws = self.ws
+        if ws is None:
+            return
+        self.ws = None
+        self._authenticated = False
+        self._session_id = None
+        assert ws is not None
+        await ws.close()
+        logger.info("Disconnected from TrueNAS")
 
     def _get_next_id(self) -> str:
         """Generate next request ID"""
@@ -327,8 +330,10 @@ class TrueNASClient:
             >>> # Typical usage via high-level method
             >>> info = await client.system_info()  # Calls system.info internally
         """
-        if not self.ws:
+        ws = self.ws
+        if ws is None:
             raise TrueNASConnectionError("Not connected. Call connect() first.")
+        assert ws is not None
 
         # Build JSON-RPC request with unique ID for request tracking
         request_id = self._get_next_id()
@@ -346,13 +351,13 @@ class TrueNASClient:
             f"API request: method={method} id={request_id} "
             f"params={_sanitize_for_logging(params or [])}"
         )
-        await self.ws.send(json.dumps(payload))
+        await ws.send(json.dumps(payload))
         logger.debug(f"Sent JSON-RPC request: {request_id}")
 
         try:
             # Receive response - blocks until response arrives
             # Note: DDP protocol sends one response per request with matching ID
-            response = await self.ws.recv()
+            response = await ws.recv()
             data = json.loads(response)
             elapsed = time.time() - start_time
 
@@ -1486,7 +1491,7 @@ class TrueNASClient:
         Returns:
             Upgraded application information
         """
-        params = [app_name]
+        params: List[Any] = [app_name]
         if version:
             params.append({"app_version": version})
         return await self.call("app.upgrade", params)
@@ -1743,7 +1748,7 @@ class TrueNASClient:
         Example:
             >>> group = await client.create_group("developers", gid=1100)
         """
-        params = {"name": name}
+        params: Dict[str, Any] = {"name": name}
 
         if gid is not None:
             params["gid"] = gid
@@ -1993,7 +1998,7 @@ class TrueNASClient:
             >>> print(datasets)
             ['tank', 'tank/data', 'tank/media']
         """
-        params = {"transport": transport}
+        params: Dict[str, Any] = {"transport": transport}
         if ssh_credentials is not None:
             params["ssh_credentials"] = ssh_credentials
 
