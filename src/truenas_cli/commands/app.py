@@ -32,7 +32,7 @@ class AppCommands(CommandGroup):
         )
         self.add_optional_argument(
             list_parser,
-            "--full",
+            ["-F", "--full"],
             "full",
             "Show all available fields",
             action="store_true",
@@ -165,7 +165,7 @@ class AppCommands(CommandGroup):
         )
         self.add_optional_argument(
             images_parser,
-            "--full",
+            ["-F", "--full"],
             "full",
             "Show all available fields",
             action="store_true",

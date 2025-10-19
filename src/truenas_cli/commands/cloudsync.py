@@ -35,7 +35,7 @@ class CloudSyncCommands(CommandGroup):
         )
         self.add_optional_argument(
             list_parser,
-            "--full",
+            ["-F", "--full"],
             "full",
             "Show all available fields",
             action="store_true",
@@ -230,7 +230,7 @@ class CloudSyncCommands(CommandGroup):
         creds_list_parser.set_defaults(func=_cmd_cloudsync_creds_list)
         self.add_optional_argument(
             creds_list_parser,
-            "--full",
+            ["-F", "--full"],
             "full",
             "Show all available fields",
             action="store_true",

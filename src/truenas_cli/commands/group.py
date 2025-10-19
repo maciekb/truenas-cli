@@ -32,7 +32,7 @@ class GroupCommands(CommandGroup):
         )
         self.add_optional_argument(
             list_parser,
-            "--full",
+            ["-F", "--full"],
             "full",
             "Show all available fields",
             action="store_true",
