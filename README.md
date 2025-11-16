@@ -16,8 +16,6 @@ A modern, production-ready command-line interface for managing TrueNAS SCALE app
 ### Advanced Features
 - **Watch Mode**: Auto-refreshing display for monitoring commands
 - **Filtering & Sorting**: Query-based filtering and sorting for list commands
-- **Batch Operations**: Process multiple operations from YAML/JSON files
-- **Parallel Execution**: Run batch operations in parallel for speed
 - **Verbose Logging**: Multiple verbosity levels (-v, -vv, -vvv) with file logging
 - **Configuration Doctor**: Comprehensive health checks and diagnostics
 - **Operation Timing**: Measure command execution time
@@ -349,45 +347,6 @@ truenas-cli pool list --sort size --reverse
 
 # Select specific columns
 truenas-cli pool list --columns name,status,size
-```
-
-### Batch Operations
-
-Process multiple operations from a file:
-
-```bash
-# Create batch operations file
-cat > operations.yaml <<EOF
-operations:
-  - id: create_dataset_1
-    command: dataset create
-    args:
-      path: tank/data
-      compression: lz4
-
-  - id: create_dataset_2
-    command: dataset create
-    args:
-      path: tank/backup
-      compression: zstd
-
-  - id: list_datasets
-    command: dataset list
-    args:
-      pool: tank
-EOF
-
-# Execute batch operations
-truenas-cli batch operations.yaml
-
-# Parallel execution (faster)
-truenas-cli batch operations.yaml --parallel --workers 4
-
-# Stop on first error
-truenas-cli batch operations.yaml --stop-on-error
-
-# Dry run (preview without executing)
-truenas-cli batch operations.yaml --dry-run
 ```
 
 ### Configuration Validation
