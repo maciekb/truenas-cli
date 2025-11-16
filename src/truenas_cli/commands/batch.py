@@ -119,7 +119,10 @@ def execute_operation(client: TrueNASClient, operation: BatchOperation) -> Any:
 
     elif command == "dataset list":
         # Optional: pool filter
-        return client.list_datasets()
+        filters = None
+        if "pool" in args:
+            filters = {"pool": args["pool"]}
+        return client.get_datasets(filters=filters)
 
     elif command == "snapshot create":
         dataset = args.get("dataset")
