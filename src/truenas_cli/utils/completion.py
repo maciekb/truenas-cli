@@ -4,14 +4,13 @@ This module provides completion functions for dynamic values like pool names
 and dataset paths from the TrueNAS API.
 """
 
-from typing import List, Optional
 
 from truenas_cli.client.base import TrueNASClient
 from truenas_cli.client.exceptions import TrueNASError
 from truenas_cli.config import ConfigManager
 
 
-def complete_pool_names(incomplete: str) -> List[str]:
+def complete_pool_names(incomplete: str) -> list[str]:
     """Complete pool names from TrueNAS API.
 
     Args:
@@ -42,7 +41,7 @@ def complete_pool_names(incomplete: str) -> List[str]:
         return []
 
 
-def complete_dataset_paths(incomplete: str) -> List[str]:
+def complete_dataset_paths(incomplete: str) -> list[str]:
     """Complete dataset paths from TrueNAS API.
 
     Args:
@@ -74,7 +73,7 @@ def complete_dataset_paths(incomplete: str) -> List[str]:
         return []
 
 
-def complete_profile_names(incomplete: str) -> List[str]:
+def complete_profile_names(incomplete: str) -> list[str]:
     """Complete profile names from configuration.
 
     Args:
@@ -98,7 +97,7 @@ def complete_profile_names(incomplete: str) -> List[str]:
         return []
 
 
-def complete_share_types(incomplete: str) -> List[str]:
+def complete_share_types(incomplete: str) -> list[str]:
     """Complete share type names.
 
     Args:
@@ -114,7 +113,7 @@ def complete_share_types(incomplete: str) -> List[str]:
     return share_types
 
 
-def complete_output_formats(incomplete: str) -> List[str]:
+def complete_output_formats(incomplete: str) -> list[str]:
     """Complete output format names.
 
     Args:

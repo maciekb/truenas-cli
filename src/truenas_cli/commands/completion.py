@@ -5,9 +5,7 @@ for bash, zsh, and fish shells.
 """
 
 import os
-import subprocess
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -39,7 +37,7 @@ def get_shell() -> str:
 
 @app.command("install")
 def install_completion(
-    shell: Optional[str] = typer.Option(
+    shell: str | None = typer.Option(
         None,
         "--shell",
         "-s",
@@ -299,7 +297,7 @@ def install_completion_script(shell: str, script: str) -> None:
 
 @app.command("uninstall")
 def uninstall_completion(
-    shell: Optional[str] = typer.Option(
+    shell: str | None = typer.Option(
         None,
         "--shell",
         "-s",
@@ -339,7 +337,7 @@ def uninstall_completion(
 
 @app.command("show")
 def show_completion(
-    shell: Optional[str] = typer.Option(
+    shell: str | None = typer.Option(
         None,
         "--shell",
         "-s",

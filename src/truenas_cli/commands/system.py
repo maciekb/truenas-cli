@@ -5,11 +5,10 @@ status, and performing system-level operations.
 """
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.json import JSON
 
 from truenas_cli.client.base import TrueNASClient
@@ -54,7 +53,7 @@ def format_output(data: Any, output_format: str) -> None:
         data: Data to output
         output_format: Format type (table, json, yaml)
     """
-    from truenas_cli.utils.formatters import format_key_value_output, format_json_output
+    from truenas_cli.utils.formatters import format_json_output, format_key_value_output
 
     if output_format == "json":
         # Pretty print JSON
@@ -194,7 +193,7 @@ def system_health(ctx: typer.Context) -> None:
     try:
         # Note: TrueNAS doesn't have a single /system/health endpoint
         # We combine multiple indicators for overall health
-        from truenas_cli.utils.formatters import format_key_value_output, format_json_output
+        from truenas_cli.utils.formatters import format_json_output, format_key_value_output
 
         # Get system state and info
         state = client.get("/system/state")
@@ -260,7 +259,11 @@ def system_stats(ctx: typer.Context) -> None:
     cli_ctx = ctx.obj
 
     try:
-        from truenas_cli.utils.formatters import format_key_value_output, format_json_output, format_bytes
+        from truenas_cli.utils.formatters import (
+            format_bytes,
+            format_json_output,
+            format_key_value_output,
+        )
 
         # Get system info for uptime and memory
         info = client.get("/system/info")

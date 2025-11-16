@@ -4,7 +4,6 @@ This module provides commands for managing ZFS datasets including
 listing, creation, deletion, and property management.
 """
 
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -12,7 +11,12 @@ from rich.console import Console
 from truenas_cli.client.base import TrueNASClient
 from truenas_cli.client.exceptions import ConfigurationError, TrueNASError
 from truenas_cli.config import ConfigManager
-from truenas_cli.utils.formatters import output_data, format_key_value_output, format_json_output, format_bytes
+from truenas_cli.utils.formatters import (
+    format_bytes,
+    format_json_output,
+    format_key_value_output,
+    output_data,
+)
 
 app = typer.Typer(
     help="Dataset management",
@@ -38,7 +42,7 @@ def get_client(ctx: typer.Context) -> TrueNASClient:
 @app.command("list")
 def list_datasets(
     ctx: typer.Context,
-    pool_name: Optional[str] = typer.Argument(None, help="Filter by pool name"),
+    pool_name: str | None = typer.Argument(None, help="Filter by pool name"),
 ) -> None:
     """List all datasets, optionally filtered by pool.
 
@@ -115,10 +119,10 @@ def list_datasets(
 def create_dataset(
     ctx: typer.Context,
     path: str = typer.Argument(..., help="Dataset path (e.g., tank/mydataset)"),
-    compression: Optional[str] = typer.Option(None, "--compression", "-c", help="Compression algorithm (lz4, gzip, zstd)"),
-    quota: Optional[str] = typer.Option(None, "--quota", "-q", help="Quota (e.g., 100G, 1T)"),
-    recordsize: Optional[str] = typer.Option(None, "--recordsize", "-r", help="Record size (e.g., 128K, 1M)"),
-    dedup: Optional[str] = typer.Option(None, "--dedup", help="Deduplication (on, off, verify)"),
+    compression: str | None = typer.Option(None, "--compression", "-c", help="Compression algorithm (lz4, gzip, zstd)"),
+    quota: str | None = typer.Option(None, "--quota", "-q", help="Quota (e.g., 100G, 1T)"),
+    recordsize: str | None = typer.Option(None, "--recordsize", "-r", help="Record size (e.g., 128K, 1M)"),
+    dedup: str | None = typer.Option(None, "--dedup", help="Deduplication (on, off, verify)"),
 ) -> None:
     """Create a new dataset.
 

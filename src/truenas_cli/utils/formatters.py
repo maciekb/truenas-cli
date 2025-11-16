@@ -5,18 +5,18 @@ in table, JSON, and plain text formats across all commands.
 """
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.json import JSON
 from rich.table import Table
 
-from truenas_cli.utils.datetime import format_datetime, is_datetime_field, format_uptime
+from truenas_cli.utils.datetime import format_datetime, format_uptime, is_datetime_field
 
 console = Console()
 
 
-def format_bytes(bytes_value: Optional[int]) -> str:
+def format_bytes(bytes_value: int | None) -> str:
     """Format bytes into human-readable format.
 
     Args:
@@ -45,7 +45,7 @@ def format_bytes(bytes_value: Optional[int]) -> str:
         return f"{size:.2f} {units[unit_index]}"
 
 
-def format_percentage(numerator: Optional[int], denominator: Optional[int]) -> str:
+def format_percentage(numerator: int | None, denominator: int | None) -> str:
     """Format a percentage from numerator and denominator.
 
     Args:
@@ -90,9 +90,9 @@ def get_status_color(status: str) -> str:
 
 
 def format_table_output(
-    data: List[Dict[str, Any]],
-    columns: List[Dict[str, str]],
-    title: Optional[str] = None,
+    data: list[dict[str, Any]],
+    columns: list[dict[str, str]],
+    title: str | None = None,
 ) -> None:
     """Format and display data as a Rich table.
 
@@ -143,8 +143,8 @@ def format_table_output(
 
 
 def format_key_value_output(
-    data: Dict[str, Any],
-    title: Optional[str] = None,
+    data: dict[str, Any],
+    title: str | None = None,
 ) -> None:
     """Format and display data as a key-value table.
 
@@ -199,8 +199,8 @@ def format_json_output(data: Any) -> None:
 
 
 def format_plain_output(
-    data: List[Dict[str, Any]],
-    columns: List[str],
+    data: list[dict[str, Any]],
+    columns: list[str],
     delimiter: str = "\t",
 ) -> None:
     """Format and display data as plain text (TSV by default).
@@ -239,9 +239,9 @@ def format_plain_output(
 def output_data(
     data: Any,
     output_format: str = "table",
-    table_columns: Optional[List[Dict[str, str]]] = None,
-    plain_columns: Optional[List[str]] = None,
-    title: Optional[str] = None,
+    table_columns: list[dict[str, str]] | None = None,
+    plain_columns: list[str] | None = None,
+    title: str | None = None,
 ) -> None:
     """Universal output function that handles all formats.
 

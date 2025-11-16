@@ -5,12 +5,12 @@ functionality using Rich's Live display.
 """
 
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Any, Optional
+from typing import Any
 
 from rich.console import Console, RenderableType
 from rich.live import Live
-from rich.panel import Panel
 from rich.text import Text
 
 
@@ -25,7 +25,7 @@ class WatchMode:
         self,
         refresh_callback: Callable[[], RenderableType],
         interval: float = 2.0,
-        console: Optional[Console] = None,
+        console: Console | None = None,
     ):
         """Initialize watch mode.
 
@@ -93,7 +93,7 @@ class WatchMode:
 def watch(
     callback: Callable[[], RenderableType],
     interval: float = 2.0,
-    console: Optional[Console] = None,
+    console: Console | None = None,
 ) -> None:
     """Convenience function to run watch mode.
 
@@ -109,7 +109,7 @@ def watch(
 class Spinner:
     """Simple spinner for long-running operations."""
 
-    def __init__(self, message: str = "Working", console: Optional[Console] = None):
+    def __init__(self, message: str = "Working", console: Console | None = None):
         """Initialize spinner.
 
         Args:
@@ -121,7 +121,6 @@ class Spinner:
 
     def __enter__(self) -> "Spinner":
         """Enter context manager."""
-        from rich.spinner import Spinner as RichSpinner
 
         self._spinner = self.console.status(self.message, spinner="dots")
         self._spinner.__enter__()

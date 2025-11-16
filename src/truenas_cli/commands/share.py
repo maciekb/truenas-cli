@@ -3,7 +3,6 @@
 This module provides commands for managing NFS and SMB/CIFS shares.
 """
 
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -11,7 +10,7 @@ from rich.console import Console
 from truenas_cli.client.base import TrueNASClient
 from truenas_cli.client.exceptions import ConfigurationError, TrueNASError
 from truenas_cli.config import ConfigManager
-from truenas_cli.utils.formatters import output_data, format_key_value_output, format_json_output
+from truenas_cli.utils.formatters import format_json_output, format_key_value_output, output_data
 
 app = typer.Typer(
     help="Share management (NFS and SMB)",
@@ -37,7 +36,7 @@ def get_client(ctx: typer.Context) -> TrueNASClient:
 @app.command("list")
 def list_shares(
     ctx: typer.Context,
-    share_type: Optional[str] = typer.Option(None, "--type", "-t", help="Share type: nfs or smb"),
+    share_type: str | None = typer.Option(None, "--type", "-t", help="Share type: nfs or smb"),
 ) -> None:
     """List all shares (NFS and/or SMB).
 
@@ -113,11 +112,11 @@ def list_shares(
 def create_nfs_share(
     ctx: typer.Context,
     path: str = typer.Argument(..., help="Path to share"),
-    comment: Optional[str] = typer.Option(None, "--comment", "-c", help="Share description"),
+    comment: str | None = typer.Option(None, "--comment", "-c", help="Share description"),
     readonly: bool = typer.Option(False, "--readonly", "-r", help="Read-only share"),
-    maproot_user: Optional[str] = typer.Option(None, "--maproot-user", help="Map root to user"),
-    maproot_group: Optional[str] = typer.Option(None, "--maproot-group", help="Map root to group"),
-    networks: Optional[str] = typer.Option(None, "--networks", help="Allowed networks (comma-separated)"),
+    maproot_user: str | None = typer.Option(None, "--maproot-user", help="Map root to user"),
+    maproot_group: str | None = typer.Option(None, "--maproot-group", help="Map root to group"),
+    networks: str | None = typer.Option(None, "--networks", help="Allowed networks (comma-separated)"),
 ) -> None:
     """Create a new NFS share.
 
@@ -183,7 +182,7 @@ def create_smb_share(
     ctx: typer.Context,
     name: str = typer.Argument(..., help="Share name"),
     path: str = typer.Argument(..., help="Path to share"),
-    comment: Optional[str] = typer.Option(None, "--comment", "-c", help="Share description"),
+    comment: str | None = typer.Option(None, "--comment", "-c", help="Share description"),
     readonly: bool = typer.Option(False, "--readonly", "-r", help="Read-only share"),
     guestok: bool = typer.Option(False, "--guest", "-g", help="Allow guest access"),
     browsable: bool = typer.Option(True, "--browsable/--no-browsable", help="Make share browsable"),

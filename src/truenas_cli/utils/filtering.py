@@ -5,8 +5,8 @@ Supports filtering by field values using simple operators.
 """
 
 import operator
-import re
-from typing import Any, Dict, List, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 class FilterExpression:
@@ -22,7 +22,7 @@ class FilterExpression:
     - field~value: Contains (substring match, case-insensitive)
     """
 
-    OPERATORS: Dict[str, Callable[[Any, Any], bool]] = {
+    OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
         "=": operator.eq,
         "!=": operator.ne,
         ">": operator.gt,
@@ -75,7 +75,7 @@ class FilterExpression:
             "field>=value, field<=value, or field~value"
         )
 
-    def _get_nested_value(self, data: Dict[str, Any], field: str) -> Any:
+    def _get_nested_value(self, data: dict[str, Any], field: str) -> Any:
         """Get value from nested dictionary using dot notation.
 
         Args:
@@ -96,7 +96,7 @@ class FilterExpression:
 
         return value
 
-    def matches(self, item: Dict[str, Any]) -> bool:
+    def matches(self, item: dict[str, Any]) -> bool:
         """Check if item matches filter expression.
 
         Args:
@@ -137,7 +137,7 @@ class FilterExpression:
 class Filter:
     """Filter list of items based on multiple expressions."""
 
-    def __init__(self, expressions: List[str]):
+    def __init__(self, expressions: list[str]):
         """Initialize filter with multiple expressions.
 
         Args:
@@ -145,7 +145,7 @@ class Filter:
         """
         self.expressions = [FilterExpression(expr) for expr in expressions]
 
-    def apply(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def apply(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Apply filter to list of items.
 
         All expressions must match (AND logic).
@@ -166,7 +166,7 @@ class Filter:
         return filtered
 
 
-def parse_filters(filter_args: List[str]) -> Filter:
+def parse_filters(filter_args: list[str]) -> Filter:
     """Parse filter arguments into Filter object.
 
     Args:
@@ -179,8 +179,8 @@ def parse_filters(filter_args: List[str]) -> Filter:
 
 
 def filter_items(
-    items: List[Dict[str, Any]], filter_expressions: List[str]
-) -> List[Dict[str, Any]]:
+    items: list[dict[str, Any]], filter_expressions: list[str]
+) -> list[dict[str, Any]]:
     """Convenience function to filter items.
 
     Args:
@@ -198,8 +198,8 @@ def filter_items(
 
 
 def sort_items(
-    items: List[Dict[str, Any]], sort_key: str, reverse: bool = False
-) -> List[Dict[str, Any]]:
+    items: list[dict[str, Any]], sort_key: str, reverse: bool = False
+) -> list[dict[str, Any]]:
     """Sort items by a field.
 
     Args:
@@ -211,7 +211,7 @@ def sort_items(
         Sorted list of items
     """
 
-    def get_sort_value(item: Dict[str, Any]) -> Any:
+    def get_sort_value(item: dict[str, Any]) -> Any:
         """Extract sort value from item."""
         parts = sort_key.split(".")
         value = item
@@ -236,8 +236,8 @@ def sort_items(
 
 
 def select_columns(
-    items: List[Dict[str, Any]], columns: List[str]
-) -> List[Dict[str, Any]]:
+    items: list[dict[str, Any]], columns: list[str]
+) -> list[dict[str, Any]]:
     """Select specific columns from items.
 
     Args:

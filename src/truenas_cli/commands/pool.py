@@ -10,7 +10,12 @@ from rich.console import Console
 from truenas_cli.client.base import TrueNASClient
 from truenas_cli.client.exceptions import ConfigurationError, TrueNASError
 from truenas_cli.config import ConfigManager
-from truenas_cli.utils.formatters import output_data, format_key_value_output, format_json_output, format_bytes
+from truenas_cli.utils.formatters import (
+    format_bytes,
+    format_json_output,
+    format_key_value_output,
+    output_data,
+)
 
 app = typer.Typer(
     help="Storage pool management",
@@ -211,7 +216,7 @@ def pool_stats(
                     format_key_value_output(stats, title=f"Pool Statistics: {pool_name}")
                     console.print("\n[yellow]Note:[/yellow] Detailed I/O statistics require reporting to be enabled")
 
-        except Exception as e:
+        except Exception:
             # If reporting fails, show basic info
             stats = {
                 "pool_name": pool_name,

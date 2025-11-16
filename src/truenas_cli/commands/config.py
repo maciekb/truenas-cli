@@ -8,8 +8,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from truenas_cli.config import Config, ConfigManager, ProfileConfig
 from truenas_cli.client.exceptions import ConfigurationError
+from truenas_cli.config import Config, ConfigManager
 
 app = typer.Typer(
     help="Manage CLI configuration and profiles",
@@ -513,7 +513,6 @@ def doctor() -> None:
         truenas-cli config doctor
     """
     from rich.panel import Panel
-    from rich.text import Text
 
     console.print(Panel("[bold]TrueNAS CLI Configuration Doctor[/bold]", expand=False))
     console.print()
