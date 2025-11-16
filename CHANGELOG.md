@@ -15,9 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Column selection for customizing table output
 - Sorting capability for list commands
 - Quiet mode for automation scripts
-- Batch operations from YAML/JSON files
-- Parallel execution support for batch operations
-- Progress tracking for batch operations
 - Comprehensive logging system with multiple verbosity levels
 - Operation timing measurements
 - Log file support for debugging

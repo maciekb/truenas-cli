@@ -197,11 +197,6 @@ def list_items(
 - Multiple filters use AND logic
 - Applied to list commands via `--filter` flag
 
-**Batch Operations** (`utils/batch.py`):
-- YAML/JSON file with operation definitions
-- Parallel execution with `--parallel --workers N`
-- Progress tracking with Rich progress bars
-
 **Shell Completion** (`utils/completion.py`):
 - Dynamic completion for pool names, dataset paths
 - Fetches values from API when possible
