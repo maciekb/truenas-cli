@@ -35,7 +35,7 @@ A modern, production-ready command-line interface for managing TrueNAS SCALE app
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/truenas-cli.git
+git clone https://github.com/maciekb/truenas-cli.git
 cd truenas-cli
 ```
 
@@ -445,7 +445,7 @@ truenas-cli --profile staging system info
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/truenas-cli.git
+git clone https://github.com/maciekb/truenas-cli.git
 cd truenas-cli
 
 # Create virtual environment

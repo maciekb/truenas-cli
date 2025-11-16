@@ -49,10 +49,10 @@ dev = [
 truenas-cli = "truenas_cli.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/truenas-cli"
-Documentation = "https://github.com/yourusername/truenas-cli#readme"
-Repository = "https://github.com/yourusername/truenas-cli"
-Issues = "https://github.com/yourusername/truenas-cli/issues"
+Homepage = "https://github.com/maciekb/truenas-cli"
+Documentation = "https://github.com/maciekb/truenas-cli#readme"
+Repository = "https://github.com/maciekb/truenas-cli"
+Issues = "https://github.com/maciekb/truenas-cli/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

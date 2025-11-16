@@ -387,7 +387,7 @@ When reporting issues, include:
 5. Debug log if applicable
 6. Steps to reproduce
 
-Create issue at: https://github.com/yourusername/truenas-cli/issues
+Create issue at: https://github.com/maciekb/truenas-cli/issues
 
 ## Advanced Troubleshooting
 

@@ -6,7 +6,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/truenas-cli.git
+git clone https://github.com/maciekb/truenas-cli.git
 cd truenas-cli
 
 # Create virtual environment

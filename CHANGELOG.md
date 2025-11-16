@@ -68,5 +68,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Common use cases and automation examples
 - Security considerations
 
-[Unreleased]: https://github.com/yourusername/truenas-cli/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourusername/truenas-cli/releases/tag/v0.1.0
+[Unreleased]: https://github.com/maciekb/truenas-cli/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/maciekb/truenas-cli/releases/tag/v0.1.0
