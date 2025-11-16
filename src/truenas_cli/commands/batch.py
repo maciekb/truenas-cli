@@ -105,11 +105,13 @@ def execute_operation(client: TrueNASClient, operation: BatchOperation) -> Any:
             raise ValueError("dataset create requires 'name' or 'path' argument")
 
         # Build dataset_data dict for API
-        dataset_data: dict[str, Any] = {"name": name}
+        # Default type to FILESYSTEM if not specified (matches dataset CLI behavior)
+        dataset_data: dict[str, Any] = {
+            "name": name,
+            "type": args.get("type", "FILESYSTEM"),
+        }
 
         # Add optional parameters if provided
-        if "type" in args:
-            dataset_data["type"] = args["type"]
         if "compression" in args:
             dataset_data["compression"] = args["compression"]
         if "comments" in args:
