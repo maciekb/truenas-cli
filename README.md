@@ -353,11 +353,30 @@ truenas-cli pool list --columns name,status,size
 
 ### Batch Operations
 
-Process multiple operations from a file:
+Process multiple operations from YAML or JSON files:
 
 ```bash
-# Create batch operations file
-cat > operations.yaml <<EOF
+# Validate a batch file
+truenas-cli batch validate operations.yaml
+
+# Execute batch operations sequentially
+truenas-cli batch execute operations.yaml
+
+# Execute in parallel with 8 workers
+truenas-cli batch execute operations.yaml --parallel --workers 8
+
+# Dry run (preview without executing)
+truenas-cli batch execute operations.yaml --dry-run
+
+# Stop on first error
+truenas-cli batch execute operations.yaml --stop-on-error
+
+# Create a sample batch file
+truenas-cli batch create-sample my-operations.yaml
+```
+
+**Example batch file** (`operations.yaml`):
+```yaml
 operations:
   - id: create_dataset_1
     command: dataset create
@@ -371,24 +390,20 @@ operations:
       path: tank/backup
       compression: zstd
 
+  - id: snapshot_data
+    command: snapshot create
+    args:
+      dataset: tank/data
+      snapshot_name: backup-2025-01-15
+      recursive: true
+
   - id: list_datasets
     command: dataset list
     args:
       pool: tank
-EOF
-
-# Execute batch operations
-truenas-cli batch operations.yaml
-
-# Parallel execution (faster)
-truenas-cli batch operations.yaml --parallel --workers 4
-
-# Stop on first error
-truenas-cli batch operations.yaml --stop-on-error
-
-# Dry run (preview without executing)
-truenas-cli batch operations.yaml --dry-run
 ```
+
+See `examples/batch-operations.yaml` for a complete example.
 
 ### Configuration Validation
 

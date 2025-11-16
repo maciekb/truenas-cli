@@ -20,6 +20,7 @@ from truenas_cli.client.exceptions import (
     ConfigurationError,
     TrueNASError,
 )
+from truenas_cli.commands import batch as batch_commands
 from truenas_cli.commands import completion as completion_commands
 from truenas_cli.commands import config as config_commands
 from truenas_cli.commands import dataset as dataset_commands
@@ -78,6 +79,11 @@ app.add_typer(
     snapshot_commands.app,
     name="snapshot",
     help="ZFS snapshot management",
+)
+app.add_typer(
+    batch_commands.app,
+    name="batch",
+    help="Execute batch operations from files",
 )
 
 

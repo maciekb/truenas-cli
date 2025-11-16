@@ -1,0 +1,52 @@
+# Example batch operations file for TrueNAS CLI
+# Format: YAML
+#
+# This file demonstrates how to define multiple operations that can be
+# executed sequentially or in parallel using the batch command.
+#
+# Usage:
+#   truenas-cli batch execute examples/batch-operations.yaml
+#   truenas-cli batch execute examples/batch-operations.yaml --parallel --workers 4
+#   truenas-cli batch validate examples/batch-operations.yaml
+
+version: "1.0"
+description: "Example batch operations for TrueNAS SCALE"
+
+operations:
+  # Create a new dataset for backups
+  - id: create_backup_dataset
+    command: dataset create
+    args:
+      path: tank/backups
+      compression: lz4
+      comments: Automated backups storage
+
+  # Create a dataset for application data
+  - id: create_data_dataset
+    command: dataset create
+    args:
+      path: tank/data
+      compression: zstd
+      recordsize: 128K
+
+  # Create a snapshot of the main dataset
+  - id: snapshot_main_data
+    command: snapshot create
+    args:
+      dataset: tank/data
+      snapshot_name: daily-backup-2025-01-15
+      recursive: true
+
+  # Create a snapshot of backups
+  - id: snapshot_backups
+    command: snapshot create
+    args:
+      dataset: tank/backups
+      snapshot_name: daily-backup-2025-01-15
+      recursive: false
+
+  # List all datasets in the tank pool
+  - id: list_tank_datasets
+    command: dataset list
+    args:
+      pool: tank
