@@ -6,10 +6,10 @@ format and ISO 8601 timestamps.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Optional, Union
+from typing import Any
 
 
-def parse_truenas_datetime(value: Any) -> Optional[datetime]:
+def parse_truenas_datetime(value: Any) -> datetime | None:
     """Parse datetime from various TrueNAS API formats.
 
     The TrueNAS API returns dates in MongoDB Extended JSON format:
@@ -100,7 +100,7 @@ def parse_truenas_datetime(value: Any) -> Optional[datetime]:
 def format_datetime(
     value: Any,
     format_type: str = "human",
-    timezone_name: Optional[str] = None,
+    timezone_name: str | None = None,
 ) -> str:
     """Format datetime value for display.
 
@@ -188,7 +188,7 @@ def format_datetime(
         return dt.strftime(f"%Y-%m-%d %H:%M:%S {tz_display}")
 
 
-def format_uptime(seconds: Optional[float]) -> str:
+def format_uptime(seconds: float | None) -> str:
     """Format uptime in seconds to human-readable format.
 
     Args:

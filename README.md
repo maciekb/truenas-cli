@@ -177,6 +177,46 @@ truenas-cli dataset delete tank/mydata
 truenas-cli dataset delete tank/mydata --recursive --yes
 ```
 
+### Snapshot Commands
+
+```bash
+# List all snapshots
+truenas-cli snapshot list
+
+# List snapshots for a specific dataset
+truenas-cli snapshot list tank/data
+
+# Create a snapshot
+truenas-cli snapshot create tank/data@backup-2025-01-15
+
+# Create a recursive snapshot (includes all child datasets)
+truenas-cli snapshot create tank/data@daily --recursive
+
+# Create snapshot with VMware sync
+truenas-cli snapshot create tank/vmware@pre-update --vmware-sync
+
+# View detailed snapshot information
+truenas-cli snapshot info tank/data@backup-2025-01-15
+
+# Clone a snapshot to a new dataset
+truenas-cli snapshot clone tank/data@backup-2025-01-15 tank/data-restore
+
+# Delete a snapshot (with confirmation)
+truenas-cli snapshot delete tank/data@old-snapshot
+
+# Delete snapshot without confirmation
+truenas-cli snapshot delete tank/data@old-snapshot --yes
+
+# Delete snapshot and its dependent clones
+truenas-cli snapshot delete tank/data@old-snapshot --recursive --yes
+
+# Rollback to a snapshot (DESTRUCTIVE - requires --force and confirmation)
+truenas-cli snapshot rollback tank/data@backup-2025-01-15 --force
+
+# Rollback with recursive deletion of newer snapshots
+truenas-cli snapshot rollback tank/data@last-good --force --recursive
+```
+
 ### Share Commands
 
 ```bash
@@ -502,6 +542,7 @@ truenas-cli/
 │           ├── system.py   # System monitoring commands
 │           ├── pool.py     # Storage pool commands
 │           ├── dataset.py  # Dataset management commands
+│           ├── snapshot.py # Snapshot management commands
 │           └── share.py    # Share management commands
 └── tests/
     └── __init__.py
@@ -582,6 +623,49 @@ if [ "$ALERTS" -gt 0 ]; then
   truenas-cli system alerts --output-format plain | \
     mail -s "TrueNAS Alerts" admin@example.com
 fi
+```
+
+### Automated Snapshot Management
+
+Create daily snapshots and cleanup old ones:
+
+```bash
+#!/bin/bash
+# Daily snapshot script
+DATE=$(date +%Y-%m-%d)
+DATASET="tank/important-data"
+
+# Create daily snapshot
+truenas-cli snapshot create "${DATASET}@daily-${DATE}" --recursive
+
+# List snapshots older than 30 days and delete them
+truenas-cli snapshot list "$DATASET" --output-format json | \
+  jq -r '.[] | select(.created < (now - 2592000)) | .name' | \
+  while read snapshot; do
+    truenas-cli snapshot delete "$snapshot" --yes
+  done
+
+echo "Snapshot management completed for $DATASET"
+```
+
+### Pre-Update Snapshot Workflow
+
+Create safety snapshots before system updates:
+
+```bash
+#!/bin/bash
+# Create pre-update snapshots
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+# Snapshot critical datasets
+for dataset in tank/data tank/home tank/config; do
+  truenas-cli snapshot create "${dataset}@pre-update-${TIMESTAMP}" --recursive
+  echo "Created safety snapshot for $dataset"
+done
+
+echo "All pre-update snapshots created"
+echo "To rollback if needed:"
+echo "  truenas-cli snapshot rollback <dataset>@pre-update-${TIMESTAMP} --force"
 ```
 
 ## Output Formats

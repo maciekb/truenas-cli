@@ -6,11 +6,10 @@ It handles authentication, retries, error handling, and request/response process
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import quote, urljoin
 
 import httpx
-from pydantic import BaseModel
 
 from truenas_cli.client.exceptions import (
     APIError,
@@ -163,8 +162,8 @@ class TrueNASClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         max_retries: int = 3,
     ) -> Any:
         """Make a synchronous HTTP request to the API.
@@ -243,8 +242,8 @@ class TrueNASClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         max_retries: int = 3,
     ) -> Any:
         """Make an asynchronous HTTP request to the API.
@@ -317,7 +316,7 @@ class TrueNASClient:
         raise NetworkError(f"Request failed after {max_retries} retries") from last_exception
 
     # Convenience methods for common HTTP verbs
-    def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def get(self, endpoint: str, params: dict[str, Any] | None = None) -> Any:
         """Make a GET request.
 
         Args:
@@ -330,7 +329,7 @@ class TrueNASClient:
         return self.request("GET", endpoint, params=params)
 
     def post(
-        self, endpoint: str, json: Optional[Dict[str, Any]] = None
+        self, endpoint: str, json: dict[str, Any] | None = None
     ) -> Any:
         """Make a POST request.
 
@@ -344,7 +343,7 @@ class TrueNASClient:
         return self.request("POST", endpoint, json=json)
 
     def put(
-        self, endpoint: str, json: Optional[Dict[str, Any]] = None
+        self, endpoint: str, json: dict[str, Any] | None = None
     ) -> Any:
         """Make a PUT request.
 
@@ -369,7 +368,7 @@ class TrueNASClient:
         return self.request("DELETE", endpoint)
 
     async def async_get(
-        self, endpoint: str, params: Optional[Dict[str, Any]] = None
+        self, endpoint: str, params: dict[str, Any] | None = None
     ) -> Any:
         """Make an async GET request.
 
@@ -383,7 +382,7 @@ class TrueNASClient:
         return await self.async_request("GET", endpoint, params=params)
 
     async def async_post(
-        self, endpoint: str, json: Optional[Dict[str, Any]] = None
+        self, endpoint: str, json: dict[str, Any] | None = None
     ) -> Any:
         """Make an async POST request.
 
@@ -500,7 +499,7 @@ class TrueNASClient:
         return self.post(f"/pool/id/{pool_id}/attachments")
 
     # Dataset management methods
-    def get_datasets(self, filters: Optional[Dict[str, Any]] = None) -> Any:
+    def get_datasets(self, filters: dict[str, Any] | None = None) -> Any:
         """Get all datasets.
 
         Args:
@@ -530,7 +529,7 @@ class TrueNASClient:
         encoded_id = quote(dataset_id, safe='')
         return self.get(f"/pool/dataset/id/{encoded_id}")
 
-    def create_dataset(self, dataset_data: Dict[str, Any]) -> Any:
+    def create_dataset(self, dataset_data: dict[str, Any]) -> Any:
         """Create a new dataset.
 
         Args:
@@ -541,7 +540,7 @@ class TrueNASClient:
         """
         return self.post("/pool/dataset", json=dataset_data)
 
-    def update_dataset(self, dataset_id: str, dataset_data: Dict[str, Any]) -> Any:
+    def update_dataset(self, dataset_id: str, dataset_data: dict[str, Any]) -> Any:
         """Update dataset properties.
 
         Args:
@@ -573,7 +572,6 @@ class TrueNASClient:
         """
         # URL-encode the dataset path to handle slashes correctly
         encoded_id = quote(dataset_id, safe='')
-        params = {"recursive": recursive}
         return self.delete(f"/pool/dataset/id/{encoded_id}")
 
     # Share management methods
@@ -596,7 +594,7 @@ class TrueNASClient:
         """
         return self.get(f"/sharing/nfs/id/{share_id}")
 
-    def create_nfs_share(self, share_data: Dict[str, Any]) -> Any:
+    def create_nfs_share(self, share_data: dict[str, Any]) -> Any:
         """Create NFS share.
 
         Args:
@@ -607,7 +605,7 @@ class TrueNASClient:
         """
         return self.post("/sharing/nfs", json=share_data)
 
-    def update_nfs_share(self, share_id: int, share_data: Dict[str, Any]) -> Any:
+    def update_nfs_share(self, share_id: int, share_data: dict[str, Any]) -> Any:
         """Update NFS share.
 
         Args:
@@ -649,7 +647,7 @@ class TrueNASClient:
         """
         return self.get(f"/sharing/smb/id/{share_id}")
 
-    def create_smb_share(self, share_data: Dict[str, Any]) -> Any:
+    def create_smb_share(self, share_data: dict[str, Any]) -> Any:
         """Create SMB share.
 
         Args:
@@ -660,7 +658,7 @@ class TrueNASClient:
         """
         return self.post("/sharing/smb", json=share_data)
 
-    def update_smb_share(self, share_id: int, share_data: Dict[str, Any]) -> Any:
+    def update_smb_share(self, share_id: int, share_data: dict[str, Any]) -> Any:
         """Update SMB share.
 
         Args:
@@ -682,3 +680,151 @@ class TrueNASClient:
             Deletion result
         """
         return self.delete(f"/sharing/smb/id/{share_id}")
+
+    # Snapshot management methods
+    def list_snapshots(self, dataset: str | None = None) -> Any:
+        """List ZFS snapshots.
+
+        Args:
+            dataset: Optional dataset name to filter snapshots
+
+        Returns:
+            List of snapshots
+        """
+        endpoint = "/zfs/snapshot"
+        if dataset:
+            # Use query filters to filter by dataset
+            params = {
+                "query-filters": [["dataset", "=", dataset]],
+                "query-options": {"order_by": ["createtxg"]}
+            }
+            return self.get(endpoint, params=params)
+        return self.get(endpoint)
+
+    def get_snapshot(self, snapshot_id: str) -> Any:
+        """Get specific snapshot information.
+
+        Args:
+            snapshot_id: Snapshot ID (format: dataset@snapshot_name)
+
+        Returns:
+            Snapshot information
+        """
+        # URL-encode the snapshot ID to handle @ and / characters
+        encoded_id = quote(snapshot_id, safe='')
+        return self.get(f"/zfs/snapshot/id/{encoded_id}")
+
+    def create_snapshot(
+        self,
+        dataset: str,
+        snapshot_name: str,
+        recursive: bool = False,
+        vmware_sync: bool = False,
+        properties: dict[str, Any] | None = None,
+    ) -> Any:
+        """Create a new ZFS snapshot.
+
+        Args:
+            dataset: Dataset path
+            snapshot_name: Name for the snapshot
+            recursive: Create recursive snapshot of all children
+            vmware_sync: Sync with VMware before snapshot
+            properties: Additional ZFS properties
+
+        Returns:
+            Created snapshot information
+        """
+        snapshot_data = {
+            "dataset": dataset,
+            "name": snapshot_name,
+            "recursive": recursive,
+            "vmware_sync": vmware_sync,
+        }
+
+        if properties:
+            snapshot_data["properties"] = properties
+
+        return self.post("/zfs/snapshot", json=snapshot_data)
+
+    def delete_snapshot(
+        self,
+        snapshot_id: str,
+        defer: bool = False,
+        recursive: bool = False,
+    ) -> Any:
+        """Delete a ZFS snapshot.
+
+        Args:
+            snapshot_id: Snapshot ID (format: dataset@snapshot_name)
+            defer: Defer deletion of snapshot
+            recursive: Recursively destroy all dependent clones
+
+        Returns:
+            Deletion result
+        """
+        # URL-encode the snapshot ID
+        encoded_id = quote(snapshot_id, safe='')
+        endpoint = f"/zfs/snapshot/id/{encoded_id}"
+
+        # TrueNAS expects options as query params or in the delete payload
+        # Based on API research, we'll use a DELETE request with params
+        params = {}
+        if defer:
+            params["defer"] = defer
+        if recursive:
+            params["recursive"] = recursive
+
+        if params:
+            return self.request("DELETE", endpoint, params=params)
+        return self.delete(endpoint)
+
+    def rollback_snapshot(
+        self,
+        snapshot_id: str,
+        force: bool = False,
+        recursive: bool = False,
+    ) -> Any:
+        """Rollback a dataset to a specific snapshot.
+
+        Args:
+            snapshot_id: Snapshot ID (format: dataset@snapshot_name)
+            force: Force unmount and rollback
+            recursive: Destroy newer snapshots and clones
+
+        Returns:
+            Rollback result
+        """
+        rollback_data = {
+            "id": snapshot_id,
+            "options": {
+                "force": force,
+                "recursive": recursive,
+            }
+        }
+        return self.post("/zfs/snapshot/rollback", json=rollback_data)
+
+    def clone_snapshot(
+        self,
+        snapshot_id: str,
+        target_dataset: str,
+        properties: dict[str, Any] | None = None,
+    ) -> Any:
+        """Clone a snapshot to create a new dataset.
+
+        Args:
+            snapshot_id: Snapshot ID (format: dataset@snapshot_name)
+            target_dataset: Name for the new cloned dataset
+            properties: Additional ZFS properties for the clone
+
+        Returns:
+            Cloned dataset information
+        """
+        clone_data = {
+            "snapshot": snapshot_id,
+            "dataset_dst": target_dataset,
+        }
+
+        if properties:
+            clone_data["dataset_properties"] = properties
+
+        return self.post("/zfs/snapshot/clone", json=clone_data)

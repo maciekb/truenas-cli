@@ -8,7 +8,6 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -21,12 +20,13 @@ from truenas_cli.client.exceptions import (
     ConfigurationError,
     TrueNASError,
 )
-from truenas_cli.commands import config as config_commands
 from truenas_cli.commands import completion as completion_commands
-from truenas_cli.commands import system as system_commands
-from truenas_cli.commands import pool as pool_commands
+from truenas_cli.commands import config as config_commands
 from truenas_cli.commands import dataset as dataset_commands
+from truenas_cli.commands import pool as pool_commands
 from truenas_cli.commands import share as share_commands
+from truenas_cli.commands import snapshot as snapshot_commands
+from truenas_cli.commands import system as system_commands
 
 # Install rich traceback handler for better error display
 install_rich_traceback(show_locals=False)
@@ -74,6 +74,11 @@ app.add_typer(
     name="share",
     help="NFS and SMB share management",
 )
+app.add_typer(
+    snapshot_commands.app,
+    name="snapshot",
+    help="ZFS snapshot management",
+)
 
 
 # Global state for CLI context
@@ -82,12 +87,12 @@ class CLIContext:
 
     def __init__(
         self,
-        profile: Optional[str] = None,
+        profile: str | None = None,
         output_format: str = "table",
         verbose: int = 0,
         quiet: bool = False,
         timing: bool = False,
-        log_file: Optional[Path] = None,
+        log_file: Path | None = None,
     ):
         self.profile = profile
         self.output_format = output_format
@@ -102,7 +107,7 @@ class CLIContext:
 @app.callback()
 def main_callback(
     ctx: typer.Context,
-    profile: Optional[str] = typer.Option(
+    profile: str | None = typer.Option(
         None,
         "--profile",
         "-p",
@@ -134,13 +139,13 @@ def main_callback(
         "--timing",
         help="Show operation timing information",
     ),
-    log_file: Optional[Path] = typer.Option(
+    log_file: Path | None = typer.Option(
         None,
         "--log-file",
         help="Write logs to file",
         exists=False,
     ),
-    version: Optional[bool] = typer.Option(
+    version: bool | None = typer.Option(
         None,
         "--version",
         "-V",

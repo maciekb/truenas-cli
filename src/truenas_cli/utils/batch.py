@@ -6,19 +6,20 @@ from YAML or JSON files, with support for parallel execution and progress tracki
 
 import json
 import sys
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import yaml
 from rich.console import Console
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
-    TextColumn,
-    BarColumn,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
 from rich.table import Table
@@ -29,8 +30,8 @@ class BatchOperation:
     """Represents a single batch operation."""
 
     command: str
-    args: Dict[str, Any]
-    id: Optional[str] = None
+    args: dict[str, Any]
+    id: str | None = None
 
 
 @dataclass
@@ -40,7 +41,7 @@ class BatchResult:
     operation: BatchOperation
     success: bool
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class BatchProcessor:
@@ -48,11 +49,11 @@ class BatchProcessor:
 
     def __init__(
         self,
-        operations: List[BatchOperation],
+        operations: list[BatchOperation],
         executor: Callable[[BatchOperation], Any],
         parallel: bool = False,
         max_workers: int = 4,
-        console: Optional[Console] = None,
+        console: Console | None = None,
     ):
         """Initialize batch processor.
 
@@ -84,7 +85,7 @@ class BatchProcessor:
         except Exception as e:
             return BatchResult(operation=operation, success=False, error=str(e))
 
-    def execute(self, stop_on_error: bool = False) -> List[BatchResult]:
+    def execute(self, stop_on_error: bool = False) -> list[BatchResult]:
         """Execute all batch operations.
 
         Args:
@@ -93,7 +94,7 @@ class BatchProcessor:
         Returns:
             List of batch results
         """
-        results: List[BatchResult] = []
+        results: list[BatchResult] = []
 
         with Progress(
             SpinnerColumn(),
@@ -136,7 +137,7 @@ class BatchProcessor:
 
         return results
 
-    def print_summary(self, results: List[BatchResult]) -> None:
+    def print_summary(self, results: list[BatchResult]) -> None:
         """Print summary of batch execution.
 
         Args:
@@ -165,7 +166,7 @@ class BatchProcessor:
                     self.console.print(f"  - {op_id}: {result.error}")
 
 
-def load_batch_file(file_path: Path) -> List[BatchOperation]:
+def load_batch_file(file_path: Path) -> list[BatchOperation]:
     """Load batch operations from YAML or JSON file.
 
     Args:
@@ -209,7 +210,7 @@ def load_batch_file(file_path: Path) -> List[BatchOperation]:
     return operations
 
 
-def load_batch_from_stdin() -> List[BatchOperation]:
+def load_batch_from_stdin() -> list[BatchOperation]:
     """Load batch operations from stdin.
 
     Expects one JSON object per line.

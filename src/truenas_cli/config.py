@@ -9,9 +9,8 @@ import json
 import os
 import stat
 from pathlib import Path
-from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, Field, field_validator
 from rich.console import Console
 
 from truenas_cli.client.exceptions import ConfigurationError
@@ -63,7 +62,7 @@ class Config(BaseModel):
     """
 
     active_profile: str = Field("default", description="Active profile name")
-    profiles: Dict[str, ProfileConfig] = Field(
+    profiles: dict[str, ProfileConfig] = Field(
         default_factory=dict, description="Profile configurations"
     )
 
@@ -110,7 +109,7 @@ class ConfigManager:
     It ensures proper file permissions and validates configuration data.
     """
 
-    def __init__(self, config_dir: Optional[Path] = None):
+    def __init__(self, config_dir: Path | None = None):
         """Initialize configuration manager.
 
         Args:
@@ -182,7 +181,7 @@ class ConfigManager:
         self.check_config_permissions()
 
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_file) as f:
                 data = json.load(f)
             return Config.model_validate(data)
         except json.JSONDecodeError as e:
@@ -264,7 +263,7 @@ class ConfigManager:
 
     def get_profile_or_active(
         self,
-        profile_name: Optional[str] = None,
+        profile_name: str | None = None,
     ) -> tuple[Config, ProfileConfig, str]:
         """Get a specific profile or the active profile.
 
