@@ -182,6 +182,17 @@ def execute(
               dataset: tank/data
               snapshot_name: backup-2025-01-15
     """
+    # Validate incompatible options
+    if parallel and stop_on_error:
+        console.print(
+            "[red]Error:[/red] --stop-on-error cannot be used with --parallel\n"
+            "[yellow]Reason:[/yellow] In parallel mode, all operations are submitted "
+            "simultaneously and cannot be cancelled mid-execution.\n"
+            "[cyan]Suggestion:[/cyan] Use sequential mode (remove --parallel) if you "
+            "need to stop on first error."
+        )
+        raise typer.Exit(1)
+
     # Load batch file
     try:
         operations = load_batch_file(file)
