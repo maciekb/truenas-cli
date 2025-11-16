@@ -17,7 +17,8 @@ operations:
   - id: create_backup_dataset
     command: dataset create
     args:
-      path: tank/backups
+      name: tank/backups
+      type: FILESYSTEM
       compression: lz4
       comments: Automated backups storage
 
@@ -25,9 +26,9 @@ operations:
   - id: create_data_dataset
     command: dataset create
     args:
-      path: tank/data
+      name: tank/data
+      type: FILESYSTEM
       compression: zstd
-      recordsize: 128K
 
   # Create a snapshot of the main dataset
   - id: snapshot_main_data

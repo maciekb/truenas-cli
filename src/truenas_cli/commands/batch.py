@@ -81,50 +81,93 @@ def validate_batch_data(batch_data: dict[str, Any]) -> list[str]:
 
 
 def execute_operation(client: TrueNASClient, operation: BatchOperation) -> Any:
-    """Execute a single batch operation.
-
-    This is a placeholder executor that demonstrates the pattern.
-    In a full implementation, this would map commands to actual API calls.
+    """Execute a single batch operation by calling the appropriate TrueNAS API method.
 
     Args:
         client: TrueNAS API client
         operation: Batch operation to execute
 
     Returns:
-        Result of the operation
+        Result of the operation (API response)
 
     Raises:
-        ValueError: If command is not recognized
+        ValueError: If command is not recognized or required arguments are missing
         TrueNASError: If API operation fails
     """
-    # This is a simplified executor - real implementation would map
-    # commands to actual client methods
     command = operation.command
     args = operation.args
 
-    # Example command mapping (extend this for actual operations)
+    # Map commands to actual API client methods
     if command == "dataset create":
-        path = args.get("path")
-        if not path:
-            raise ValueError("dataset create requires 'path' argument")
-        # Would call client.create_dataset() here
-        return {"status": "success", "path": path}
+        # Required: name or path
+        name = args.get("name") or args.get("path")
+        if not name:
+            raise ValueError("dataset create requires 'name' or 'path' argument")
+
+        # Build dataset_data dict for API
+        dataset_data: dict[str, Any] = {"name": name}
+
+        # Add optional parameters if provided
+        if "type" in args:
+            dataset_data["type"] = args["type"]
+        if "compression" in args:
+            dataset_data["compression"] = args["compression"]
+        if "comments" in args:
+            dataset_data["comments"] = args["comments"]
+
+        return client.create_dataset(dataset_data)
 
     elif command == "dataset list":
-        pool = args.get("pool")
-        # Would call client.list_datasets() here
-        return {"status": "success", "pool": pool}
+        # Optional: pool filter
+        return client.list_datasets()
 
     elif command == "snapshot create":
         dataset = args.get("dataset")
         snapshot_name = args.get("snapshot_name")
         if not dataset or not snapshot_name:
-            raise ValueError("snapshot create requires 'dataset' and 'snapshot_name'")
-        # Would call client.create_snapshot() here
-        return {"status": "success", "snapshot": f"{dataset}@{snapshot_name}"}
+            raise ValueError(
+                "snapshot create requires 'dataset' and 'snapshot_name' arguments"
+            )
+
+        recursive = args.get("recursive", False)
+        vmware_sync = args.get("vmware_sync", False)
+        properties = args.get("properties")
+
+        return client.create_snapshot(
+            dataset=dataset,
+            snapshot_name=snapshot_name,
+            recursive=recursive,
+            vmware_sync=vmware_sync,
+            properties=properties,
+        )
+
+    elif command == "snapshot delete":
+        snapshot_id = args.get("snapshot_id") or args.get("snapshot")
+        if not snapshot_id:
+            raise ValueError("snapshot delete requires 'snapshot_id' or 'snapshot' argument")
+
+        defer = args.get("defer", False)
+        recursive = args.get("recursive", False)
+
+        return client.delete_snapshot(
+            snapshot_id=snapshot_id,
+            defer=defer,
+            recursive=recursive,
+        )
+
+    elif command == "snapshot list":
+        dataset = args.get("dataset")
+        return client.list_snapshots(dataset=dataset)
+
+    elif command == "pool list":
+        return client.get_pools()
 
     else:
-        raise ValueError(f"Unknown command: {command}")
+        raise ValueError(
+            f"Unknown command: '{command}'. "
+            f"Supported commands: dataset create, dataset list, snapshot create, "
+            f"snapshot delete, snapshot list, pool list"
+        )
 
 
 @app.command()
