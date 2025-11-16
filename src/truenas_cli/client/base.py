@@ -691,7 +691,7 @@ class TrueNASClient:
         Returns:
             List of snapshots
         """
-        endpoint = "/zfs/snapshot"
+        endpoint = "/pool/snapshot"
         if dataset:
             # Use query filters to filter by dataset
             params = {
@@ -712,7 +712,7 @@ class TrueNASClient:
         """
         # URL-encode the snapshot ID to handle @ and / characters
         encoded_id = quote(snapshot_id, safe='')
-        return self.get(f"/zfs/snapshot/id/{encoded_id}")
+        return self.get(f"/pool/snapshot/id/{encoded_id}")
 
     def create_snapshot(
         self,
@@ -744,7 +744,7 @@ class TrueNASClient:
         if properties:
             snapshot_data["properties"] = properties
 
-        return self.post("/zfs/snapshot", json=snapshot_data)
+        return self.post("/pool/snapshot", json=snapshot_data)
 
     def delete_snapshot(
         self,
@@ -764,7 +764,7 @@ class TrueNASClient:
         """
         # URL-encode the snapshot ID
         encoded_id = quote(snapshot_id, safe='')
-        endpoint = f"/zfs/snapshot/id/{encoded_id}"
+        endpoint = f"/pool/snapshot/id/{encoded_id}"
 
         # TrueNAS expects options as query params or in the delete payload
         # Based on API research, we'll use a DELETE request with params
@@ -801,7 +801,7 @@ class TrueNASClient:
                 "recursive": recursive,
             }
         }
-        return self.post("/zfs/snapshot/rollback", json=rollback_data)
+        return self.post("/pool/snapshot/rollback", json=rollback_data)
 
     def clone_snapshot(
         self,
@@ -827,4 +827,4 @@ class TrueNASClient:
         if properties:
             clone_data["dataset_properties"] = properties
 
-        return self.post("/zfs/snapshot/clone", json=clone_data)
+        return self.post("/pool/snapshot/clone", json=clone_data)

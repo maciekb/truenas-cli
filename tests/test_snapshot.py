@@ -72,7 +72,7 @@ class TestSnapshotAPIMethods:
     def test_list_snapshots_all(self, client, mock_snapshot_list_response, httpx_mock):
         """Test listing all snapshots."""
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             json=mock_snapshot_list_response,
         )
 
@@ -87,7 +87,7 @@ class TestSnapshotAPIMethods:
         # Note: httpx_mock doesn't easily support query params validation,
         # so we just test the call is made
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             json=mock_snapshot_list_response,
         )
 
@@ -100,7 +100,7 @@ class TestSnapshotAPIMethods:
         snapshot_id = "tank/data@backup-2025-01-15"
         # URL encoded: tank%2Fdata%40backup-2025-01-15
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/id/tank%2Fdata%40backup-2025-01-15",
+            url="https://truenas.local/api/v2.0/pool/snapshot/id/tank%2Fdata%40backup-2025-01-15",
             json=mock_snapshot_response,
         )
 
@@ -112,7 +112,7 @@ class TestSnapshotAPIMethods:
     def test_create_snapshot(self, client, mock_snapshot_response, httpx_mock):
         """Test creating a snapshot."""
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             method="POST",
             json=mock_snapshot_response,
         )
@@ -138,7 +138,7 @@ class TestSnapshotAPIMethods:
     def test_create_snapshot_recursive(self, client, mock_snapshot_response, httpx_mock):
         """Test creating a recursive snapshot."""
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             method="POST",
             json=mock_snapshot_response,
         )
@@ -159,7 +159,7 @@ class TestSnapshotAPIMethods:
         """Test deleting a snapshot."""
         snapshot_id = "tank/data@backup-2025-01-15"
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/id/tank%2Fdata%40backup-2025-01-15",
+            url="https://truenas.local/api/v2.0/pool/snapshot/id/tank%2Fdata%40backup-2025-01-15",
             method="DELETE",
             json={"status": "deleted"},
         )
@@ -184,7 +184,7 @@ class TestSnapshotAPIMethods:
         """Test rolling back to a snapshot."""
         snapshot_id = "tank/data@backup-2025-01-15"
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/rollback",
+            url="https://truenas.local/api/v2.0/pool/snapshot/rollback",
             method="POST",
             json={"status": "success"},
         )
@@ -207,7 +207,7 @@ class TestSnapshotAPIMethods:
         target_dataset = "tank/data-restore"
 
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/clone",
+            url="https://truenas.local/api/v2.0/pool/snapshot/clone",
             method="POST",
             json={"name": target_dataset, "cloned_from": snapshot_id},
         )
@@ -227,7 +227,7 @@ class TestSnapshotAPIMethods:
     def test_api_error_handling(self, client, httpx_mock):
         """Test handling of API errors."""
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             status_code=404,
             json={"message": "Snapshot not found"},
         )
@@ -309,7 +309,7 @@ class TestSnapshotEdgeCases:
         snapshot_id = "tank/data@backup-2025.01.15_daily"
 
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             method="POST",
             json={"name": snapshot_id},
         )
@@ -324,7 +324,7 @@ class TestSnapshotEdgeCases:
     def test_empty_snapshot_list(self, client, httpx_mock):
         """Test handling of empty snapshot list."""
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             json=[],
         )
 
@@ -340,7 +340,7 @@ class TestSnapshotEdgeCases:
         properties = {"compression": "lz4", "quota": "100G"}
 
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/clone",
+            url="https://truenas.local/api/v2.0/pool/snapshot/clone",
             method="POST",
             json={"name": target},
         )
@@ -365,7 +365,7 @@ class TestSnapshotIntegration:
 
         # Create snapshot
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             method="POST",
             json={"name": snapshot_id, "dataset": "tank/data"},
         )
@@ -375,7 +375,7 @@ class TestSnapshotIntegration:
 
         # List snapshots
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             json=[{"name": snapshot_id, "dataset": "tank/data"}],
         )
 
@@ -399,7 +399,7 @@ class TestSnapshotIntegration:
 
         # Create snapshot
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot",
+            url="https://truenas.local/api/v2.0/pool/snapshot",
             method="POST",
             json={"name": snapshot_id},
         )
@@ -408,7 +408,7 @@ class TestSnapshotIntegration:
 
         # Clone snapshot
         httpx_mock.add_response(
-            url="https://truenas.local/api/v2.0/zfs/snapshot/clone",
+            url="https://truenas.local/api/v2.0/pool/snapshot/clone",
             method="POST",
             json={"name": clone_name, "cloned_from": snapshot_id},
         )
