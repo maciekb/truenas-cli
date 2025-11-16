@@ -95,7 +95,8 @@ def execute_operation(client: TrueNASClient, operation: BatchOperation) -> Any:
         TrueNASError: If API operation fails
     """
     command = operation.command
-    args = operation.args
+    # Normalize args to empty dict if None or not a dict (prevents AttributeError)
+    args = operation.args if isinstance(operation.args, dict) else {}
 
     # Map commands to actual API client methods
     if command == "dataset create":
