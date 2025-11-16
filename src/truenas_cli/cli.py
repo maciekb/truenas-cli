@@ -204,9 +204,7 @@ def main_callback(
     if log_file:
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.DEBUG)  # Always debug to file
-        file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(file_formatter)
         handlers.append(file_handler)
 
@@ -254,7 +252,9 @@ def main() -> None:
         sys.exit(2)
     except ConfigurationError as e:
         console.print(f"[bold red]Configuration Error:[/bold red] {e}")
-        console.print("\n[yellow]Tip:[/yellow] Initialize configuration with 'truenas-cli config init'")
+        console.print(
+            "\n[yellow]Tip:[/yellow] Initialize configuration with 'truenas-cli config init'"
+        )
         sys.exit(3)
     except TrueNASError as e:
         console.print(f"[bold red]TrueNAS Error:[/bold red] {e}")
@@ -266,7 +266,9 @@ def main() -> None:
         sys.exit(130)  # Standard exit code for SIGINT
     except Exception as e:
         console.print(f"[bold red]Unexpected Error:[/bold red] {e}")
-        console.print("\n[dim]This is a bug. Please report it with the --verbose flag output.[/dim]")
+        console.print(
+            "\n[dim]This is a bug. Please report it with the --verbose flag output.[/dim]"
+        )
         sys.exit(1)
     finally:
         # Show timing if requested (check if --timing was in sys.argv)
