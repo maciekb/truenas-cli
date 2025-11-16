@@ -116,8 +116,7 @@ truenas-cli/
 │       ├── formatters.py
 │       ├── completion.py
 │       ├── filtering.py
-│       ├── watch.py
-│       └── batch.py
+│       └── watch.py
 ├── tests/                  # Test suite
 │   ├── conftest.py         # Pytest fixtures
 │   ├── test_client.py

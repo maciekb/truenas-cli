@@ -274,14 +274,6 @@ Check terminal supports ANSI codes and has sufficient size.
 - Use `--quiet` mode for automation
 - Consider caching frequently accessed data
 
-### Problem: Batch operations taking too long
-
-**Solution:**
-Enable parallel execution:
-```bash
-truenas-cli batch --parallel --workers 10 operations.yaml
-```
-
 ## Shell Completion Not Working
 
 ### Problem: Tab completion doesn't work
