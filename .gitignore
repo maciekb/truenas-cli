@@ -93,3 +93,4 @@ site/
 # Prompts (work files, not part of release)
 prompts/
 !prompts/completed/
+.serena/
